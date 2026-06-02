@@ -1,0 +1,26 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest gymnasium stable-baselines3 numpy pandas plotly streamlit
+          
+      - name: Run Pytest
+        run: python -m pytest tests/
+        
+      - name: Check syntax
+        run: python -m py_compile train.py app.py environments.py
