@@ -2,7 +2,7 @@
  * Project: Smart Grid Load Decision Agent - GitHub Pages Logic
  * Course: Computational Foundations for Artificial Intelligence
  * Author: Tejaswin Amara
- * Academic Standing: Senior (III Year)
+ * Academic Standing: I Year (III Semester)
  * Roll Number: 2520090104
  * Program: CSIT, KLH University (Bachupally Campus)
  */
@@ -30,6 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const elNetReward = document.getElementById('net-reward-val');
     const elVolatility = document.getElementById('volatility-val');
     const elSharpe = document.getElementById('sharpe-val');
+    
+    // Schematic Elements
+    const elSchematicSolar = document.getElementById('schematic-solar-val');
+    const elSchematicSoc = document.getElementById('schematic-soc-val');
+    const elSchematicGrid = document.getElementById('schematic-grid-val');
+    const pathSolar = document.getElementById('flow-solar-bat');
+    const pathGridCharge = document.getElementById('flow-grid-bat');
+    const pathDischarge = document.getElementById('flow-bat-grid');
 
     // -------------------------------------------------------------
     // PARAMETERS & SYNC WITH UI
@@ -90,6 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
         let priceNoise = 0.0;
         let solarNoise = 0.0;
         
+        // Markov Chain Weather initial state (0 = Sunny, 1 = Cloudy, 2 = Stormy)
+        let weatherState = 0; 
+        const weatherNames = ["SUNNY", "CLOUDY", "STORMY"];
+        const weatherIcons = ["☀️", "⛅", "⛈️"];
+        const weatherMultipliers = [1.0, 0.4, 0.08];
+        const transitionMatrix = [
+            [0.75, 0.20, 0.05], // Sunny transitions
+            [0.25, 0.60, 0.15], // Cloudy transitions
+            [0.10, 0.35, 0.55]  // Stormy transitions
+        ];
+        
         const hours = [];
         const prices = [];
         const solarGens = [];
@@ -99,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const profits = [];
         const wears = [];
         const explainers = [];
+        const rawExplainers = []; // keep raw for CSS classes
         
         let totalProfit = 0.0;
         let totalWear = 0.0;
@@ -107,6 +127,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Run 48-hour simulation
         for (let step = 0; step < 48; step++) {
             const currentHour = step % 24;
+            
+            // Update weather state using Markov Chain transitions
+            const rand = Math.random();
+            let cumulativeProb = 0.0;
+            let nextState = weatherState;
+            for (let s = 0; s < 3; s++) {
+                cumulativeProb += transitionMatrix[weatherState][s];
+                if (rand <= cumulativeProb) {
+                    nextState = s;
+                    break;
+                }
+            }
+            weatherState = nextState;
+            const weatherMultiplier = weatherMultipliers[weatherState];
             
             // 1. AR(1) Stochastic update process
             const phiPrice = 0.8;
@@ -126,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             solarNoise = Math.max(-10.0, Math.min(10.0, solarNoise));
             
             const currentPrice = Math.max(0.05, basePriceProfile[currentHour] + priceNoise);
-            const currentSolar = Math.max(0.0, baseSolarProfile[currentHour] + solarNoise);
+            const currentSolar = Math.max(0.0, (baseSolarProfile[currentHour] + solarNoise) * weatherMultiplier);
             
             // 2. SAC Actor Heuristic Neural-Network Policy
             // Decision inputs: soc_norm, price_norm, solar_norm, hour
@@ -195,6 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
+            // Generate weather-prefixed explanation text
+            const weatherLabel = `${weatherIcons[weatherState]} ${weatherNames[weatherState]} | ${explainer}`;
+            
             // Accumulate metrics
             totalProfit += stepProfit;
             totalWear += degradationPenalty;
@@ -209,7 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stepRewards.push(stepReward);
             profits.push(stepProfit);
             wears.push(degradationPenalty);
-            explainers.push(explainer);
+            explainers.push(weatherLabel);
+            rawExplainers.push(explainer);
         }
 
         // -------------------------------------------------------------
@@ -222,6 +260,44 @@ document.addEventListener('DOMContentLoaded', () => {
         elWearDelta.textContent = `-$${(totalWear / 2.0).toFixed(2)} / day`;
         
         elNetReward.textContent = cumulativeReward.toFixed(2);
+        
+        // -------------------------------------------------------------
+        // UPDATE LIVE GRID SCHEMATIC & POWER FLOW PATHS
+        // -------------------------------------------------------------
+        const finalSolar = solarGens[47];
+        const finalSoc = socTrajectory[47];
+        const finalNetPower = actions[47];
+        const finalHour = hours[47] % 24;
+        
+        if (elSchematicSolar) elSchematicSolar.textContent = `${finalSolar.toFixed(1)} kW`;
+        if (elSchematicSoc) elSchematicSoc.textContent = `${finalSoc.toFixed(1)}%`;
+        
+        let gridStatusText = "Idle / Balanced";
+        if (finalNetPower > 0.5) {
+            gridStatusText = `Importing: +${finalNetPower.toFixed(1)} kW`;
+        } else if (finalNetPower < -0.5) {
+            gridStatusText = `Exporting: ${finalNetPower.toFixed(1)} kW`;
+        }
+        if (elSchematicGrid) elSchematicGrid.textContent = gridStatusText;
+        
+        // Solar path active if daytime (6h to 18h) and weather solar is high
+        const isDaytime = (6 <= finalHour && finalHour <= 18);
+        const isSolarActive = isDaytime && finalSolar > 2.0;
+        if (pathSolar) {
+            pathSolar.style.display = isSolarActive ? 'block' : 'none';
+        }
+        
+        // Grid charge path active if netPowerKw is positive (charging) and solar is not the only source
+        const isCharging = finalNetPower > 0.5;
+        if (pathGridCharge) {
+            pathGridCharge.style.display = (isCharging && finalSolar < 10.0) ? 'block' : 'none';
+        }
+        
+        // Discharge path active if netPowerKw is negative (exporting)
+        const isDischarging = finalNetPower < -0.5;
+        if (pathDischarge) {
+            pathDischarge.style.display = isDischarging ? 'block' : 'none';
+        }
 
         // Volatility Risk & Sharpe Ratio calculation
         const meanReward = cumulativeReward / 48.0;
@@ -251,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>$${profits[i].toFixed(3)}</td>
                     <td>$${wears[i].toFixed(3)}</td>
                     <td>${stepRewards[i].toFixed(3)}</td>
-                    <td><span class="decision-tag tag-${explainers[i].toLowerCase().replace(/[^a-z0-9]/g, '-')}">${explainers[i]}</span></td>
+                    <td><span class="decision-tag tag-${rawExplainers[i].toLowerCase().replace(/[^a-z0-9]/g, '-')}">${explainers[i]}</span></td>
                 `;
                 tableBody.appendChild(tr);
             }

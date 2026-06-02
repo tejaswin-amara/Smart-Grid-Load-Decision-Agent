@@ -1,5 +1,5 @@
 # SOVEREIGN EVOLUTION REPORT (v13.0.0-PRODUCTION)
-> Generated: 2026-06-02 19:07:25
+> Generated: 2026-06-02 19:34:46
 
 ## Intelligence Signals
 | Signal | Value |
@@ -7,7 +7,7 @@
 | Primary Domain | General |
 | Engine Version | 13.0.0-PRODUCTION |
 | Detected Tags | 0 |
-| Global Skills | 115 |
+| Global Skills | 126 |
 | Local Files | 8 |
 | Learnings Recorded | 12 |
 
