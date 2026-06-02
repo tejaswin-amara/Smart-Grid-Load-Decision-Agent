@@ -1,0 +1,605 @@
+/* -------------------------------------------------------------
+   SYSTEM COLORS & THEME DESIGN SYSTEM (HSL Tailored Tokens)
+   ------------------------------------------------------------- */
+:root {
+    --bg-main: #080C14;
+    --bg-card: rgba(16, 24, 40, 0.65);
+    --bg-sidebar: #0C121E;
+    
+    --border-premium: rgba(255, 255, 255, 0.08);
+    --border-active: rgba(0, 245, 212, 0.35);
+    
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    
+    --color-primary: #00F5D4;      /* Glowing Cyan */
+    --color-secondary: #7B2CBF;    /* Premium Purple */
+    --color-orange: #FF9F1C;       /* Solar Warmth */
+    --color-red: #E71D36;          /* Discharge/Cost */
+    --color-green: #2EC4B6;        /* Charge/Benefit */
+    
+    --glass-blur: blur(14px);
+    --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+    --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* -------------------------------------------------------------
+   GLOBAL & CORE STYLING
+   ------------------------------------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    height: 100vh;
+}
+
+h1, h2, h3, h4, .logo-text, .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+/* -------------------------------------------------------------
+   MAIN LAYOUT ARCHITECTURE
+   ------------------------------------------------------------- */
+.app-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* -------------------------------------------------------------
+   SIDEBAR & CONTROL PANEL
+   ------------------------------------------------------------- */
+.sidebar {
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-premium);
+    display: flex;
+    flex-direction: column;
+    padding: 30px 24px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sidebar-header {
+    margin-bottom: 35px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 26px;
+    filter: drop-shadow(0 0 8px var(--color-primary));
+    animation: pulse 2.5s infinite alternate;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text-primary) 30%, var(--color-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tagline {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+}
+
+.sidebar-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+/* Academic card in sidebar */
+.student-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-premium);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.student-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.student-info:last-child {
+    margin-bottom: 0;
+}
+
+.meta-label {
+    color: var(--text-secondary);
+}
+
+.meta-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Control sliders & items */
+.control-group {
+    margin-bottom: 20px;
+}
+
+.control-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.control-value {
+    color: var(--color-primary);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+}
+
+/* Premium range inputs */
+.premium-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+.premium-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--color-primary);
+    transition: var(--transition-smooth);
+}
+
+.premium-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Premium Button */
+.premium-btn {
+    background: linear-gradient(135deg, var(--color-green) 0%, var(--color-secondary) 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    padding: 14px 20px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 15px rgba(46, 196, 182, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.premium-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 196, 182, 0.4);
+}
+
+.premium-btn:active {
+    transform: translateY(1px);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-premium);
+    padding-top: 16px;
+}
+
+.sidebar-footer p {
+    margin-bottom: 4px;
+}
+
+.sidebar-footer .version {
+    font-family: monospace;
+}
+
+/* -------------------------------------------------------------
+   MAIN CONTENT AREA
+   ------------------------------------------------------------- */
+.dashboard-main {
+    padding: 40px 48px;
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.dashboard-header .description {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-top: 6px;
+    max-width: 800px;
+}
+
+/* -------------------------------------------------------------
+   METRICS SECTION (Glassmorphic cards)
+   ------------------------------------------------------------- */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-premium);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow-premium);
+    transition: var(--transition-smooth);
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-active);
+}
+
+.metric-icon {
+    font-size: 28px;
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.metric-icon.profit {
+    border: 1px solid rgba(46, 196, 182, 0.25);
+    background: rgba(46, 196, 182, 0.08);
+}
+
+.metric-icon.wear {
+    border: 1px solid rgba(231, 29, 54, 0.25);
+    background: rgba(231, 29, 54, 0.08);
+}
+
+.metric-icon.reward {
+    border: 1px solid rgba(123, 44, 191, 0.25);
+    background: rgba(123, 44, 191, 0.08);
+}
+
+.metric-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.metric-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-primary);
+}
+
+.metric-delta {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.metric-delta.positive {
+    color: var(--color-green);
+}
+
+.metric-delta.negative {
+    color: var(--color-red);
+}
+
+.metric-delta.neutral {
+    color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------
+   CHARTS GRID
+   ------------------------------------------------------------- */
+.charts-section {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 24px;
+}
+
+.chart-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-premium);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-premium);
+}
+
+.plotly-chart {
+    width: 100%;
+    min-height: 350px;
+}
+
+/* -------------------------------------------------------------
+   ACADEMIC EXPLANATIONS PANEL
+   ------------------------------------------------------------- */
+.academic-documentation {
+    margin-top: 10px;
+}
+
+.doc-panel {
+    background: rgba(12, 18, 30, 0.4);
+    border: 1px solid var(--border-premium);
+    border-radius: 16px;
+    padding: 35px 40px;
+}
+
+.doc-panel h2 {
+    font-size: 22px;
+    color: var(--color-primary);
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-premium);
+    padding-bottom: 12px;
+}
+
+.doc-paragraphs {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.doc-block h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.doc-block p {
+    font-size: 14.5px;
+    color: var(--text-secondary);
+    text-align: justify;
+    margin-bottom: 15px;
+}
+
+.math-block {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 3px solid var(--color-secondary);
+    padding: 16px 20px;
+    border-radius: 0 12px 12px 0;
+    margin: 15px 0;
+    font-family: monospace;
+    overflow-x: auto;
+}
+
+/* -------------------------------------------------------------
+   MICRO-ANIMATIONS
+   ------------------------------------------------------------- */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1.1);
+        opacity: 1;
+        filter: drop-shadow(0 0 12px var(--color-primary));
+    }
+}
+
+/* Glowing Agent Status Indicator */
+.agent-status-panel {
+    background: rgba(46, 196, 182, 0.04);
+    border: 1px solid rgba(46, 196, 182, 0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    animation: panel-glow 3s infinite alternate;
+}
+
+.status-indicator-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-green);
+    animation: dot-pulse 1.5s infinite ease-in-out;
+}
+
+.status-indicator-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-green);
+    letter-spacing: 0.05em;
+}
+
+@keyframes panel-glow {
+    0% {
+        box-shadow: 0 0 5px rgba(46, 196, 182, 0.05);
+        border-color: rgba(46, 196, 182, 0.1);
+    }
+    100% {
+        box-shadow: 0 0 12px rgba(46, 196, 182, 0.2);
+        border-color: rgba(46, 196, 182, 0.3);
+    }
+}
+
+@keyframes dot-pulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.6;
+        box-shadow: 0 0 4px var(--color-green);
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+        box-shadow: 0 0 14px var(--color-green);
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0.6;
+        box-shadow: 0 0 4px var(--color-green);
+    }
+}
+
+/* Collapsible Logs section styles */
+.logs-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-premium);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-premium);
+}
+
+.premium-details {
+    width: 100%;
+}
+
+.premium-summary {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    outline: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition-smooth);
+}
+
+.premium-summary:hover {
+    color: var(--color-primary);
+}
+
+.premium-summary::-webkit-details-marker {
+    display: none;
+}
+
+.logs-table-container {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-premium);
+    border-radius: 12px;
+}
+
+.premium-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.premium-table th {
+    background-color: #0c121e;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-premium);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.premium-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.premium-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Decision Explainer Tags style */
+.decision-tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    letter-spacing: 0.02em;
+}
+
+.tag-solar-surplus-charge {
+    background: rgba(255, 159, 28, 0.12);
+    color: var(--color-orange);
+    border: 1px solid rgba(255, 159, 28, 0.25);
+}
+
+.tag-off-peak-charge {
+    background: rgba(46, 196, 182, 0.12);
+    color: var(--color-green);
+    border: 1px solid rgba(46, 196, 182, 0.25);
+}
+
+.tag-peak-discharge {
+    background: rgba(231, 29, 54, 0.12);
+    color: var(--color-red);
+    border: 1px solid rgba(231, 29, 54, 0.25);
+}
+
+.tag-mid-peak-discharge {
+    background: rgba(123, 44, 191, 0.12);
+    color: var(--color-secondary);
+    border: 1px solid rgba(123, 44, 191, 0.25);
+}
+
+.tag-idle-standby {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}

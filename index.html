@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stochastic Smart Grid Load Decision Agent - GitHub Pages Demo</title>
+    <!-- Google Fonts: Inter and Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly.js CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation & Control Panel -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <span class="logo-icon">⚡</span>
+                    <h2 class="logo-text">SmartGrid</h2>
+                </div>
+                <p class="tagline">Stochastic Load Decision Agent</p>
+                <div class="agent-status-panel">
+                    <span class="status-indicator-dot"></span>
+                    <span class="status-indicator-text">🤖 AGENT STATUS: ACTIVE</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="section-title">Academic Profile</h3>
+                <div class="student-card">
+                    <div class="student-info">
+                        <span class="meta-label">Author</span>
+                        <span class="meta-value">Tejaswin Amara</span>
+                    </div>
+                    <div class="student-info">
+                        <span class="meta-label">Roll Number</span>
+                        <span class="meta-value">2520090104</span>
+                    </div>
+                    <div class="student-info">
+                        <span class="meta-label">Standing</span>
+                        <span class="meta-value">Senior (III Year)</span>
+                    </div>
+                    <div class="student-info">
+                        <span class="meta-label">Program</span>
+                        <span class="meta-value">CSIT, KLH University</span>
+                    </div>
+                    <div class="student-info">
+                        <span class="meta-label">Campus</span>
+                        <span class="meta-value">Bachupally Campus</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">Grid Configuration</h3>
+                
+                <div class="control-group">
+                    <div class="control-header">
+                        <label for="battery-capacity">Battery Capacity</label>
+                        <span class="control-value" id="battery-capacity-val">100 kWh</span>
+                    </div>
+                    <input type="range" id="battery-capacity" min="50" max="200" value="100" step="10" class="premium-slider">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <label for="max-power">Max Power Output</label>
+                        <span class="control-value" id="max-power-val">25 kW</span>
+                    </div>
+                    <input type="range" id="max-power" min="10" max="50" value="25" step="5" class="premium-slider">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <label for="price-volatility">AR(1) Price Volatility</label>
+                        <span class="control-value" id="price-volatility-val">0.03</span>
+                    </div>
+                    <input type="range" id="price-volatility" min="0.01" max="0.10" value="0.03" step="0.01" class="premium-slider">
+                </div>
+
+                <button id="run-simulation-btn" class="premium-btn">
+                    <span class="btn-text">🚀 Run 48-Hour Simulation</span>
+                </button>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p>Course: Computational Foundations for AI</p>
+                <p class="version">v13.0.0-PRODUCTION</p>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Workspace -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="header-text">
+                    <h1>Stochastic Smart Grid Decision Dashboard</h1>
+                    <p class="description">Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.</p>
+                </div>
+            </header>
+
+            <!-- Metrics Grid -->
+            <section class="metrics-grid">
+                <div class="metric-card" id="metric-profit-card">
+                    <div class="metric-icon profit">💰</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Total Energy Arbitrage Profit</span>
+                        <h3 class="metric-value" id="total-profit-val">$0.00</h3>
+                        <span class="metric-delta positive" id="profit-delta-val">$0.00 / day</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="metric-wear-card">
+                    <div class="metric-icon wear">⚙️</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Battery Wear & Degradation Cost</span>
+                        <h3 class="metric-value" id="total-wear-val">$0.00</h3>
+                        <span class="metric-delta negative" id="wear-delta-val">-$0.00 / day</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="metric-reward-card">
+                    <div class="metric-icon reward">⭐</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Net Policy Value (Reward)</span>
+                        <h3 class="metric-value" id="net-reward-val">0.00</h3>
+                        <span class="metric-delta neutral">Robust SAC Policy</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="metric-volatility-card">
+                    <div class="metric-icon wear" style="border-color: rgba(255, 159, 28, 0.25); background: rgba(255, 159, 28, 0.08);">📉</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Volatility Risk Index</span>
+                        <h3 class="metric-value" id="volatility-val">0.0000</h3>
+                        <span class="metric-delta neutral">Hourly Deviation</span>
+                    </div>
+                </div>
+
+                <div class="metric-card" id="metric-sharpe-card">
+                    <div class="metric-icon profit" style="border-color: rgba(0, 245, 212, 0.25); background: rgba(0, 245, 212, 0.08);">⚖️</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Risk-Adjusted Arbitrage (Sharpe)</span>
+                        <h3 class="metric-value" id="sharpe-val">0.00%</h3>
+                        <span class="metric-delta positive" id="sharpe-delta-val">Profit per Risk Unit</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-panel">
+                    <div id="market-chart" class="plotly-chart"></div>
+                </div>
+                
+                <div class="chart-panel">
+                    <div id="soc-chart" class="plotly-chart"></div>
+                </div>
+            </section>
+
+            <!-- Detailed Hourly Logs Expander -->
+            <section class="logs-section">
+                <details class="premium-details">
+                    <summary class="premium-summary">📝 View Detailed Hourly Logs</summary>
+                    <div class="logs-table-container">
+                        <table class="premium-table" id="hourly-logs-table">
+                            <thead>
+                                <tr>
+                                    <th>Hour</th>
+                                    <th>Price ($/MWh)</th>
+                                    <th>Solar Gen (%)</th>
+                                    <th>Dispatch Action (kW)</th>
+                                    <th>State of Charge (%)</th>
+                                    <th>Step Profit ($)</th>
+                                    <th>Step Wear ($)</th>
+                                    <th>Step Reward</th>
+                                    <th>Agent Decision Explainer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loaded dynamically in script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </section>
+
+            <!-- Academic Documentation Section -->
+            <section class="academic-documentation">
+                <div class="doc-panel">
+                    <h2>🎓 Academic Explanation & Foundational Math</h2>
+                    
+                    <div class="doc-paragraphs">
+                        <div class="doc-block">
+                            <h3>1. The Stochastic Markov Decision Process (MDP)</h3>
+                            <p>This smart grid optimization task is modeled as a continuous-state, continuous-action <strong>stochastic Markov Decision Process (MDP)</strong> defined by the five-tuple \((\mathcal{S}, \mathcal{A}, P, R, \gamma)\). The continuous state space \(\mathcal{S}\) tracks four dimensions: the battery normalized State of Charge (SoC), electricity pricing, solar irradiance generation, and the time of day. Crucially, the transition dynamics function \(P(s' | s, a)\) incorporates environmental volatility through first-order <strong>Autoregressive (AR(1)) stochastic processes</strong> mapping both the pricing schedule and local photovoltaic generation:</p>
+                            <div class="math-block">
+                                \[p_{t+1} = \mu_p + \phi_p(p_t - \mu_p) + \epsilon^p_t, \quad \epsilon^p_t \sim \mathcal{N}(0, \sigma_p^2)\]
+                                \[g_{t+1} = \mu_g + \phi_g(g_t - \mu_g) + \epsilon^g_t, \quad \epsilon^g_t \sim \mathcal{N}(0, \sigma_g^2)\]
+                            </div>
+                            <p>Here, the stochastic price and solar signals are updated using stationary coefficients \(\phi_p = 0.8\) and \(\phi_g = 0.7\), combined with independent normal error perturbations \(\epsilon^p\) and \(\epsilon^g\) that prevent unrealistic high-frequency variance while retaining daily periodicity constraints.</p>
+                        </div>
+
+                        <div class="doc-block">
+                            <h3>2. Soft Actor-Critic (SAC) Maximum Entropy Objective</h3>
+                            <p>To operate effectively in highly volatile and unpredictable pricing landscapes, the decision agent is trained using the off-policy <strong>Soft Actor-Critic (SAC)</strong> framework. SAC expands the traditional expected return formulation of reinforcement learning by maximizing the policy's structural entropy alongside standard long-term reward. The maximum entropy objective function \(J(\pi)\) is mathematically stated as:</p>
+                            <div class="math-block">
+                                \[J(\pi) = \sum_{t=0}^{\infty} \mathbb{E}_{(s_t, a_t) \sim \rho_\pi} \left[ R(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot | s_t)) \right]\]
+                            </div>
+                            <p>where \(\mathcal{H}(\pi(\cdot | s_t)) = -\int_{A} \pi(a|s_t) \log \pi(a|s_t) da\) is the operational policy entropy, and \(\alpha\) is the dynamic temperature parameter balancing exploration drive against standard optimization. By incentivizing the neural network to explore highly diverse path sequences, entropy regularization prevents premature collapse of the continuous control actor into sub-optimal local basins (such as simple, short-sighted greedy trading schemes).</p>
+                        </div>
+
+                        <div class="doc-block">
+                            <h3>3. Physics Boundary Constraints & Reward Shaped Calculus</h3>
+                            <p>To enforce grid stability, system safety, and longevity, the reward framework employs multi-objective reward shaping. The aggregate reward \(R(s,a)\) is defined as:</p>
+                            <div class="math-block">
+                                \[R(s, a) = R_{\text{arbitrage}} + R_{\text{green}} - R_{\text{wear}}\]
+                            </div>
+                            <p>Where energy arbitrage \(R_{\text{arbitrage}} = p_t \times (D_t - C_t) \times \eta\) optimizes direct grid cost-efficiency, utilizing local charging efficiency \(\eta\) that degrades quadratically as SoC approaches full capacity: \(\eta_{\text{charge}} = \eta_{\text{base}} \times (1 - 0.2 \cdot SoC^2)\). Degradation penalty \(R_{\text{wear}}\) implements dynamic Depth-of-Discharge (DoD) wear tracking proportional to absolute power flow, incentivizing battery longevity. This shaped manifold maps a highly constrained safe operational frontier directly within the continuous neural network optimization landscape.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MathJax script for LaTeX math equations in browser -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
