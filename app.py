@@ -176,17 +176,24 @@ class AdvancedSmartGridEnv(gym.Env):
         """
         dt_hours = 1.0 / 60.0  # 1 minute timestep
         
+        # Action space smoothing via soft-sigmoid to prevent extreme draws near bounds
         if power_kw < 0:  # Charging
+            charge_bounds_factor = 1.0 - (1.0 / (1.0 + np.exp(-20.0 * (self.soc - 0.9))))
+            smoothed_power_kw = power_kw * charge_bounds_factor
+            
             efficiency = self._calculate_charging_efficiency(self.soc)
             # Account for efficiency loss
-            power_demand = -power_kw / efficiency
+            power_demand = -smoothed_power_kw / efficiency
             # Limit by available capacity
             max_charge_rate = (1.0 - self.soc) * self.config.battery_capacity_kwh / dt_hours
             actual_power = -min(power_demand, max_charge_rate) * efficiency
         else:  # Discharging
+            discharge_bounds_factor = 1.0 / (1.0 + np.exp(-20.0 * (self.soc - 0.1)))
+            smoothed_power_kw = power_kw * discharge_bounds_factor
+            
             # Limit by available energy
             max_discharge_rate = self.soc * self.config.battery_capacity_kwh / dt_hours
-            actual_power = min(power_kw, max_discharge_rate)
+            actual_power = min(smoothed_power_kw, max_discharge_rate)
         
         # Update state of charge
         energy_change_kwh = actual_power * dt_hours / self.config.battery_capacity_kwh
@@ -218,8 +225,23 @@ class AdvancedSmartGridEnv(gym.Env):
         # 3. Degradation Penalty
         # Battery degradation is proportional to energy throughput
         energy_processed = abs(power_kw) * dt_hours
+        
+        # Dynamic Thermal Wear Calculus
+        T_amb = 25.0
+        T_nominal = 25.0
+        R_thermal = 0.001 # lower resistance for scaled power
+        tau = 0.1
+        lambda_wear = 0.005
+        
+        # Update cell temperature (I^2 * R approximated by power_kw^2)
+        power_squared = power_kw ** 2
+        self.cell_temp = T_amb + R_thermal * power_squared + (1.0 - tau) * (self.cell_temp - T_amb)
+        
+        temp_diff = self.cell_temp - T_nominal
+        dynamic_degradation_rate = self.config.degradation_cost_per_kwh * (1.0 + lambda_wear * (temp_diff ** 2))
+        
         degradation_penalty = (
-            energy_processed * self.config.degradation_cost_per_kwh
+            energy_processed * dynamic_degradation_rate
         )
         
         # 4. Efficiency Bonus (encourage staying at mid-SoC)
@@ -299,6 +321,7 @@ class AdvancedSmartGridEnv(gym.Env):
         self.current_solar_base = 0.0
         self.total_energy_processed = 0.0
         self.cumulative_reward = 0.0
+        self.cell_temp = 25.0
         
         observation = np.array([
             self.soc,

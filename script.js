@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalProfit = 0.0;
         let totalWear = 0.0;
         let cumulativeReward = 0.0;
+        let cellTemp = 25.0;
 
         // Run 48-hour simulation
         for (let step = 0; step < 48; step++) {
@@ -182,9 +183,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // 3. Environment Physics and Dynamic Efficiency Constraints
             const rawPowerKw = action * maxPower;
             
+            // Action space smoothing via soft-sigmoid to prevent extreme draws near bounds
+            let smoothedPowerKw = rawPowerKw;
+            if (rawPowerKw > 0) { // Charging
+                const chargeBoundsFactor = 1.0 - (1.0 / (1.0 + Math.exp(-20.0 * (socNorm - 0.9))));
+                smoothedPowerKw = rawPowerKw * chargeBoundsFactor;
+            } else if (rawPowerKw < 0) { // Discharging
+                const dischargeBoundsFactor = 1.0 / (1.0 + Math.exp(-20.0 * (socNorm - 0.1)));
+                smoothedPowerKw = rawPowerKw * dischargeBoundsFactor;
+            }
+            
             // Feasible bounds matching state limits
-            const maxCharge = rawPowerKw > 0 ? Math.min(rawPowerKw, maxPower) : 0;
-            const maxDischarge = rawPowerKw < 0 ? Math.max(rawPowerKw, -maxPower) : 0;
+            const maxCharge = smoothedPowerKw > 0 ? Math.min(smoothedPowerKw, maxPower) : 0;
+            const maxDischarge = smoothedPowerKw < 0 ? Math.max(smoothedPowerKw, -maxPower) : 0;
             
             const availableCharge = Math.max(0, batteryCapacity - socKwh);
             const availableDischarge = socKwh;
@@ -209,7 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Multi-objective reward shaping
             const stepProfit = currentPrice * (-netPowerKw) * timeStepDuration;
             const greenBonus = 0.1 * actualChargeKw * currentSolar / 100.0 * timeStepDuration;
-            const degradationPenalty = degradationCostPerKwh * Math.abs(netPowerKw) * timeStepDuration;
+            
+            // Dynamic Thermal Wear Calculus
+            const T_amb = 25.0;
+            const T_nominal = 25.0;
+            const R_thermal = 0.001; // lower resistance for scaled power
+            const tau = 0.1;
+            const lambda_wear = 0.005;
+            
+            const powerSquared = netPowerKw * netPowerKw;
+            cellTemp = T_amb + R_thermal * powerSquared + (1.0 - tau) * (cellTemp - T_amb);
+            const tempDiff = cellTemp - T_nominal;
+            const dynamicDegradationRate = degradationCostPerKwh * (1.0 + lambda_wear * (tempDiff * tempDiff));
+            
+            const degradationPenalty = dynamicDegradationRate * Math.abs(netPowerKw) * timeStepDuration;
             
             const stepReward = stepProfit + greenBonus - degradationPenalty;
             
@@ -299,18 +323,24 @@ document.addEventListener('DOMContentLoaded', () => {
             pathDischarge.style.display = isDischarging ? 'block' : 'none';
         }
 
-        // Volatility Risk & Sharpe Ratio calculation
-        const meanReward = cumulativeReward / 48.0;
+        // 12-Hour Rolling Volatility Risk & Sharpe Ratio calculation
+        const windowSize = 12;
+        let recentRewardsSum = 0.0;
+        for (let i = 48 - windowSize; i < 48; i++) {
+            recentRewardsSum += stepRewards[i];
+        }
+        const meanReward = recentRewardsSum / windowSize;
+        
         let sumSquaredDiffs = 0.0;
-        for (let i = 0; i < 48; i++) {
+        for (let i = 48 - windowSize; i < 48; i++) {
             const diff = stepRewards[i] - meanReward;
             sumSquaredDiffs += diff * diff;
         }
-        const volatilityRisk = Math.sqrt(sumSquaredDiffs / 48.0);
+        const volatilityRisk = Math.sqrt(sumSquaredDiffs / windowSize);
         const sharpeRatio = (meanReward / (volatilityRisk + 1e-6)) * 100.0;
 
         if (elVolatility) elVolatility.textContent = volatilityRisk.toFixed(4);
-        if (elSharpe) elSharpe.textContent = `${sharpeRatio.toFixed(2)}%`;
+        if (elSharpe) elSharpe.textContent = `${sharpeRatio.toFixed(2)}% (12h)`;
 
         // Render detailed hourly logs in the expandable table
         const tableBody = document.querySelector('#hourly-logs-table tbody');
