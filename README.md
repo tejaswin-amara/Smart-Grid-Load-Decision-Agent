@@ -20,12 +20,6 @@
 
 <br/>
 
-<div align="center">
-  <img src="assets/hero_banner.png" alt="Stochastic Smart Grid Load Decision Agent Dashboard Mockup" width="90%" style="border-radius: 12px; border: 1px solid #e1e4e8; box-shadow: 0 4px 20px rgba(0,0,0,0.08);"/>
-</div>
-
-<br/>
-
 ---
 
 > [!NOTE]
@@ -132,6 +126,19 @@ The composite components are categorized and structured as:
 > The physical State of Charge ($SoC$) is bounded by a strict system invariant:
 > $$SoC_t \in [0.0, 1.0] \quad \forall t$$
 > Any actions attempting to push the battery past these limits are physically clipped by environment constraints (`np.clip`).
+
+### 🔌 Dynamic Microgrid Power Flow Visualization
+
+To visualize how the physical dynamics and mathematical boundaries ($P_t$, $S_t$, and $SoC$) act together in real-time under the trained model, the live system renders a dynamic power flow schematic:
+
+<div align="center">
+  <img src="assets/schematic.png" alt="Live Microgrid Power Flow Schematic" width="85%" style="border-radius: 12px; border: 1px solid #e1e4e8; box-shadow: 0 4px 20px rgba(0,0,0,0.08);"/>
+</div>
+
+#### What the Visual Lines Represent:
+*   **Solid Curved Vectors (Top)**: Model the active grid load pricing feed and raw photovoltaic solar array generation ($S_t$) capacity.
+*   **Dashed Animated Flow (Bottom)**: Represents the continuous charging/discharging battery load flow ($P_t$). The animation speed dynamically scales with physical current throughput, and the color state indicates active charging (solar surplus/off-peak grid) vs discharging (peak arbitrage).
+*   **Pulsing State-of-Charge (SoC) Indicators**: Track the physical energy boundaries to prevent overcharging or absolute deep discharge, matching the hard state invariants enforced mathematically in the Gymnasium environment loop.
 
 ---
 
