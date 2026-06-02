@@ -2,7 +2,7 @@
 Project: Production-Grade Smart Grid Load Decision Agent (Final Capstone)
 Course: Computational Foundations for Artificial Intelligence
 Author: Tejaswin Amara
-Academic Standing: Senior (III Year)
+Academic Standing: I Year (III Semester)
 Roll Number: 2520090104
 Program: CSIT, KLH University (Bachupally Campus)
 """
