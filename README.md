@@ -7,7 +7,7 @@
 ## Author & Institutional Information
 
 **Author:** Tejaswin Amara  
-**Academic Standing:** Senior (III Year)  
+**Academic Standing:** I Year (III Semester)  
 **Roll Number:** 2520090104  
 **Institution:** CSIT, KLH University (Bachupally Campus)  
 **Course:** Computational Foundations for Artificial Intelligence  
