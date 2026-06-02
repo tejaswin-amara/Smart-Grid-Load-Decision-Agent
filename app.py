@@ -37,7 +37,14 @@ class GridConfig:
     max_power_kw: float = 25.0
     base_efficiency: float = 0.95
     degradation_cost_per_kwh: float = 0.02
+    green_bonus_coefficient: float = 0.02
     training_timesteps: int = 50000
+    rollout_horizon_hours: int = 24
+    obs_clip_threshold: float = 10.0
+    price_ar1_coefficient: float = 0.8
+    solar_ar1_coefficient: float = 0.7
+    price_noise_std: float = 4.0
+    solar_noise_std: float = 3.0
 
 
 class AdvancedSmartGridEnv(gym.Env[np.ndarray, np.ndarray]):
@@ -58,10 +65,10 @@ class AdvancedSmartGridEnv(gym.Env[np.ndarray, np.ndarray]):
             high=np.array([1.0, 200.0, 100.0, 23.0], dtype=np.float32),
             dtype=np.float32,
         )
-        self.price_phi = 0.8
-        self.solar_phi = 0.7
-        self.price_sigma = 4.0
-        self.solar_sigma = 3.0
+        self.price_ar1_coefficient = self.config.price_ar1_coefficient
+        self.solar_ar1_coefficient = self.config.solar_ar1_coefficient
+        self.price_noise_std = self.config.price_noise_std
+        self.solar_noise_std = self.config.solar_noise_std
         self._rng = np.random.default_rng()
         self.current_step = 0
         self.current_hour = 0
@@ -85,14 +92,17 @@ class AdvancedSmartGridEnv(gym.Env[np.ndarray, np.ndarray]):
         return float(np.clip(self.config.base_efficiency * nonlinear_penalty, 0.55, 1.0))
 
     def _advance_stochastic_processes(self) -> None:
-        next_hour = self.current_hour % 24
-        price_base = self._price_base_curve(next_hour)
-        solar_base = self._solar_base_curve(next_hour)
-        price_noise = self._rng.normal(0.0, self.price_sigma)
-        solar_noise = self._rng.normal(0.0, self.solar_sigma)
+        current_hour_24h = self.current_hour % 24
+        price_base = self._price_base_curve(current_hour_24h)
+        solar_base = self._solar_base_curve(current_hour_24h)
+        price_noise = self._rng.normal(0.0, self.price_noise_std)
+        solar_noise = self._rng.normal(0.0, self.solar_noise_std)
+        # AR(1) dynamics are applied to residuals around the hourly sinusoidal baseline.
         self.price = float(
             np.clip(
-                price_base + self.price_phi * (self.price - self._prev_price_base) + price_noise,
+                price_base
+                + self.price_ar1_coefficient * (self.price - self._prev_price_base)
+                + price_noise,
                 5.0,
                 200.0,
             )
@@ -100,7 +110,8 @@ class AdvancedSmartGridEnv(gym.Env[np.ndarray, np.ndarray]):
         self.solar_generation = float(
             np.clip(
                 solar_base
-                + self.solar_phi * (self.solar_generation - self._prev_solar_base)
+                + self.solar_ar1_coefficient
+                * (self.solar_generation - self._prev_solar_base)
                 + solar_noise,
                 0.0,
                 100.0,
@@ -135,10 +146,18 @@ class AdvancedSmartGridEnv(gym.Env[np.ndarray, np.ndarray]):
         self._prev_price_base = self._price_base_curve(self.current_hour)
         self._prev_solar_base = self._solar_base_curve(self.current_hour)
         self.price = float(
-            np.clip(self._prev_price_base + self._rng.normal(0.0, self.price_sigma), 5.0, 200.0)
+            np.clip(
+                self._prev_price_base + self._rng.normal(0.0, self.price_noise_std),
+                5.0,
+                200.0,
+            )
         )
         self.solar_generation = float(
-            np.clip(self._prev_solar_base + self._rng.normal(0.0, self.solar_sigma), 0.0, 100.0)
+            np.clip(
+                self._prev_solar_base + self._rng.normal(0.0, self.solar_noise_std),
+                0.0,
+                100.0,
+            )
         )
         return self._get_observation(), {}
 
@@ -175,7 +194,7 @@ class AdvancedSmartGridEnv(gym.Env[np.ndarray, np.ndarray]):
         self.state_of_charge = float(np.clip(self.state_of_charge, 0.0, 1.0))
         financial_arbitrage = self.price * net_grid_energy_kwh
         charging_kwh = max(-net_grid_energy_kwh, 0.0)
-        green_bonus = 0.02 * self.solar_generation * charging_kwh
+        green_bonus = self.config.green_bonus_coefficient * self.solar_generation * charging_kwh
         degradation_penalty = self.config.degradation_cost_per_kwh * abs(processed_energy_kwh)
         reward = financial_arbitrage + green_bonus - degradation_penalty
 
@@ -342,9 +361,13 @@ def main() -> None:
             st.plotly_chart(create_dual_axis_chart(result_df), use_container_width=True)
             st.plotly_chart(create_soc_chart(result_df), use_container_width=True)
             st.dataframe(result_df, use_container_width=True)
-        except Exception as exc:  # pylint: disable=broad-except
-            LOGGER.exception("Simulation failed.")
-            st.error(f"Simulation failed: {exc}")
+        except FileNotFoundError as exc:
+            st.error(str(exc))
+        except ValueError as exc:
+            st.error(f"Invalid simulation configuration: {exc}")
+        except RuntimeError as exc:
+            LOGGER.exception("Runtime simulation failure.")
+            st.error(f"Simulation runtime failure: {exc}")
 
 
 if __name__ == "__main__":
