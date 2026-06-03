@@ -563,6 +563,19 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
             @keyframes dash {{ to {{ stroke-dashoffset: -1000; }} }}
             @keyframes dash-reverse {{ to {{ stroke-dashoffset: 1000; }} }}
             
+            .schematic-node {{
+                cursor: pointer;
+                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease !important;
+            }}
+            .schematic-node:hover {{
+                transform: translateY(-4px) scale(1.025) !important;
+                border-color: #00F5D4 !important;
+                box-shadow: 0 8px 25px rgba(0, 245, 212, 0.3) !important;
+            }}
+            .schematic-node:active {{
+                transform: translateY(-2px) scale(1.01) !important;
+            }}
+            
             .solar-active {{
                 box-shadow: 0 0 15px rgba(255, 159, 28, 0.25) !important;
                 border-color: rgba(255, 159, 28, 0.5) !important;

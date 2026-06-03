@@ -9,6 +9,43 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------
+    // INTERACTIVE SCHEMATIC CLICK HANDLERS (MICRO-INTERACTIONS)
+    // -------------------------------------------------------------
+    function flashCard(cardId) {
+        const card = document.getElementById(cardId);
+        if (card) {
+            card.classList.remove('flash-active');
+            void card.offsetWidth; // Force CSS reflow to restart animation
+            card.classList.add('flash-active');
+            // Auto clean class after animation completes
+            setTimeout(() => {
+                card.classList.remove('flash-active');
+            }, 1200);
+        }
+    }
+
+    const nodeSolar = document.getElementById('node-solar');
+    const nodeBattery = document.getElementById('node-battery');
+    const nodeGrid = document.getElementById('node-grid');
+
+    if (nodeSolar) {
+        nodeSolar.addEventListener('click', () => {
+            flashCard('metric-profit-card');
+        });
+    }
+    if (nodeBattery) {
+        nodeBattery.addEventListener('click', () => {
+            flashCard('metric-wear-card');
+        });
+    }
+    if (nodeGrid) {
+        nodeGrid.addEventListener('click', () => {
+            flashCard('metric-volatility-card');
+            flashCard('metric-sharpe-card');
+        });
+    }
+
+    // -------------------------------------------------------------
     // ELEMENT SELECTORS
     // -------------------------------------------------------------
     const sliderCapacity = document.getElementById('battery-capacity');

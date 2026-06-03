@@ -959,5 +959,41 @@ h1, h2, h3, h4, .logo-text, .section-title {
     }
 }
 
+/* Schematic hover micro-interactions */
+.schematic-node {
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
 
+.schematic-node:hover {
+    transform: translateY(-4px) scale(1.025);
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 8px 25px rgba(0, 245, 212, 0.3) !important;
+}
 
+.schematic-node:active {
+    transform: translateY(-2px) scale(1.01);
+}
+
+/* Card flash animation on node click */
+@keyframes flash-highlight {
+    0% {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 25px rgba(0, 245, 212, 0.5);
+        transform: scale(1.02);
+    }
+    50% {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 35px rgba(0, 245, 212, 0.6);
+        transform: scale(1.03);
+    }
+    100% {
+        border-color: var(--border-premium);
+        box-shadow: var(--shadow-premium);
+        transform: scale(1.0);
+    }
+}
+
+.flash-active {
+    animation: flash-highlight 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
