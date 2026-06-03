@@ -51,15 +51,27 @@ By modeling volatile electricity markets and solar generation as Autoregressive 
 
 ---
 
+## 🎨 Visual & Interactive Features (UI/UX Parity)
+
+Both the Python **Streamlit dashboard** (`app.py`) and the serverless **WebAssembly demo** (`index.html`) share a fully-aligned, highly polished UI/UX design:
+
+| Feature | Core Functionality | Purpose for Layperson |
+| :--- | :--- | :--- |
+| **🏡 1-Click Presets** | Pre-configured setups for *Home Battery*, *Pricing Crisis*, and *Solar Peak*. | Instantly evaluates microgrid models under recognizable scenarios without manual configuration. |
+| **🎓 Dual-Mode Toggle** | Instantly switches the entire dashboard between **Simple View** and **Academic View**. | Translates complex RL terms (State of Charge, Arbitrage, Volatility Risk) into natural natural language terms. |
+| **🎮 Play the Simulator** | Turns control over to the user for a 48-hour step-by-step microgrid trading game. | Provides a direct head-to-head score comparison evaluating how manual trading fares against the Soft Actor-Critic agent. |
+| **🔌 Reactive SVG Flow** | A real-time vector schematic depicting active current paths (solar, grid import/export, charge/discharge). | Visually demonstrates physical battery state transitions and active power flow dynamics. |
+
+---
+
 ## 📂 Repository Structure
 
 Below is the layout of the project, demonstrating the clean decoupling of deep learning environments, training workflows, and deployment frameworks:
 
 ```ascii
 └── Smart-Grid-Load-Decision-Agent/
-    ├── .agents/                 # Sovereign governance templates and active rules
     ├── assets/                  # High-resolution screenshots and media assets
-    │   └── hero_banner.png      # Premium UI dashboard mockup
+    │   └── schematic.png        # Live microgrid flow schematic visual asset
     ├── best_grid_model/         # Production serialization outputs
     │   ├── best_model.onnx      # Compiled policy network computational graph
     │   └── vec_normalize.pkl    # Running state observation normalization stats
