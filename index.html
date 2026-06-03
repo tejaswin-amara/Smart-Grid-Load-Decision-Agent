@@ -63,6 +63,14 @@
             </div>
 
             <div class="sidebar-section">
+                <h3 class="section-title">Control Mode</h3>
+                <div class="toggle-mode-container">
+                    <button class="mode-btn active" id="btn-control-auto">🤖 Auto AI</button>
+                    <button class="mode-btn" id="btn-control-manual">🎮 Play Game</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section" id="sidebar-presets-panel">
                 <h3 class="section-title">Scenario Presets</h3>
                 <div class="presets-grid">
                     <button class="preset-btn active" id="preset-home">🏡 Home Battery</button>
@@ -71,7 +79,40 @@
                 </div>
             </div>
 
-            <div class="sidebar-section">
+            <div class="sidebar-section" id="sidebar-game-panel" style="display: none;">
+                <h3 class="section-title">🎮 Game Controls</h3>
+                
+                <div class="game-status-card">
+                    <div class="game-info">
+                        <span class="meta-label">Progress</span>
+                        <span class="meta-value" id="game-step-val">Hour 0/48</span>
+                    </div>
+                    <div class="game-info">
+                        <span class="meta-label">Grid Price</span>
+                        <span class="meta-value" id="game-price-val">$0.00/kWh</span>
+                    </div>
+                    <div class="game-info">
+                        <span class="meta-label">Solar Output</span>
+                        <span class="meta-value" id="game-solar-val">0.0 kW</span>
+                    </div>
+                    <div class="game-info">
+                        <span class="meta-label">Weather</span>
+                        <span class="meta-value" id="game-weather-val">☀️ SUNNY</span>
+                    </div>
+                </div>
+
+                <div class="game-actions-container">
+                    <button id="game-btn-charge" class="game-action-btn charge-btn">🟢 Charge (+20 kW)</button>
+                    <button id="game-btn-hold" class="game-action-btn hold-btn">💤 Standby (0 kW)</button>
+                    <button id="game-btn-discharge" class="game-action-btn discharge-btn">🔴 Discharge (-20 kW)</button>
+                </div>
+
+                <button id="game-btn-reset" class="premium-btn" style="background: linear-gradient(135deg, var(--color-red) 0%, var(--color-secondary) 100%); margin-top: 15px;">
+                    <span class="btn-text">🔄 Restart Game</span>
+                </button>
+            </div>
+
+            <div class="sidebar-section" id="sidebar-config-panel">
                 <h3 class="section-title" id="sidebar-config-title">Grid Configuration</h3>
                 
                 <div class="control-group">
@@ -209,7 +250,13 @@
 
                         <!-- Node 2: Battery SoC -->
                         <div class="schematic-node battery-node" id="node-battery">
-                            <span class="node-icon">🔋</span>
+                            <div class="battery-wrapper">
+                                <div class="battery-body">
+                                    <div class="battery-level" id="visual-battery-level" style="width: 50%;"></div>
+                                    <span class="battery-bolt" id="visual-battery-bolt">⚡</span>
+                                </div>
+                                <div class="battery-head"></div>
+                            </div>
                             <span class="node-label">Smart Battery</span>
                             <span class="node-value" id="schematic-soc-val">50.0%</span>
                         </div>

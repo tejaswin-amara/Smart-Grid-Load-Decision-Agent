@@ -673,3 +673,131 @@ h1, h2, h3, h4, .logo-text, .section-title {
     box-shadow: 0 0 10px rgba(123, 44, 191, 0.25);
 }
 
+/* -------------------------------------------------------------
+   DYNAMIC PHYSICAL BATTERY ELEMENT
+   ------------------------------------------------------------- */
+.battery-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.battery-body {
+    width: 50px;
+    height: 25px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 5px;
+    padding: 1.5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+}
+
+.battery-head {
+    width: 3px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 0 1.5px 1.5px 0;
+}
+
+.battery-level {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-green) 0%, var(--color-primary) 100%);
+    border-radius: 2px;
+    transition: width 0.4s ease-in-out, background 0.4s ease;
+}
+
+.battery-bolt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 11px;
+    color: var(--color-primary);
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    display: none;
+    animation: flash-bolt 1s infinite alternate;
+}
+
+@keyframes flash-bolt {
+    0% { opacity: 0.3; text-shadow: 0 0 2px var(--color-primary); }
+    100% { opacity: 1.0; text-shadow: 0 0 8px var(--color-primary); }
+}
+
+/* -------------------------------------------------------------
+   GAMIFICATION SIDEBAR CONTROLS
+   ------------------------------------------------------------- */
+.game-status-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-premium);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    margin-bottom: 8px;
+}
+
+.game-info:last-child {
+    margin-bottom: 0;
+}
+
+.game-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.game-action-btn {
+    border: 1px solid var(--border-premium);
+    border-radius: 10px;
+    color: white;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    text-align: center;
+}
+
+.game-action-btn.charge-btn {
+    background: rgba(46, 196, 182, 0.08);
+    border-color: rgba(46, 196, 182, 0.25);
+    color: var(--color-green);
+}
+
+.game-action-btn.charge-btn:hover {
+    background: rgba(46, 196, 182, 0.15);
+    box-shadow: 0 0 10px rgba(46, 196, 182, 0.2);
+}
+
+.game-action-btn.hold-btn {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--border-premium);
+    color: var(--text-secondary);
+}
+
+.game-action-btn.hold-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.game-action-btn.discharge-btn {
+    background: rgba(231, 29, 54, 0.08);
+    border-color: rgba(231, 29, 54, 0.25);
+    color: var(--color-red);
+}
+
+.game-action-btn.discharge-btn:hover {
+    background: rgba(231, 29, 54, 0.15);
+    box-shadow: 0 0 10px rgba(231, 29, 54, 0.2);
+}
+
+
