@@ -219,7 +219,7 @@
                             <span class="node-value" id="schematic-solar-val">0.0 kW</span>
                         </div>
 
-                        <!-- Animated SVG Flow Connections -->
+                        <!-- Animated SVG Flow Connections (2-Line Physical Layout) -->
                         <svg class="schematic-svg" viewBox="0 0 400 120">
                             <!-- Definitions for filters -->
                             <defs>
@@ -237,15 +237,17 @@
                                 </filter>
                             </defs>
                             
-                            <!-- Static background connection paths -->
-                            <path d="M 60 30 C 130 5, 170 5, 200 30" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
-                            <path d="M 340 30 C 270 5, 230 5, 200 30" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
-                            <path d="M 200 70 C 200 100, 270 105, 340 80" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
+                            <!-- Static background connection paths (2 physical lines) -->
+                            <!-- Line 1: Solar to Battery -->
+                            <path d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
+                            <!-- Line 2: Battery to Grid -->
+                            <path d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
                             
                             <!-- Active dynamic glowing flow paths -->
-                            <path id="flow-solar-bat" class="flow-path path-solar" d="M 60 30 C 130 5, 170 5, 200 30" fill="none" stroke="var(--color-orange)" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="10, 10" style="display: none;" />
-                            <path id="flow-grid-bat" class="flow-path path-grid-charge" d="M 340 30 C 270 5, 230 5, 200 30" fill="none" stroke="var(--color-green)" stroke-width="3.5" filter="url(#glow-green)" stroke-dasharray="10, 10" style="display: none;" />
-                            <path id="flow-bat-grid" class="flow-path path-discharge" d="M 200 70 C 200 100, 270 105, 340 80" fill="none" stroke="var(--color-red)" stroke-width="3.5" filter="url(#glow-red)" stroke-dasharray="10, 10" style="display: none;" />
+                            <!-- Path 1: Solar to Battery (always Orange, flows Left to Right) -->
+                            <path id="flow-solar-bat" class="flow-path" d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="var(--color-orange)" stroke-width="3.5" filter="url(#glow-orange)" style="display: none;" />
+                            <!-- Path 2: Battery to Grid (dynamic color/direction based on state) -->
+                            <path id="flow-bat-grid" class="flow-path" d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="var(--color-green)" stroke-width="3.5" filter="url(#glow-green)" style="display: none;" />
                         </svg>
 
                         <!-- Node 2: Battery SoC -->

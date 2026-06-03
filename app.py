@@ -450,9 +450,24 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
     is_solar_active = solar_kw > 2.0
     
     path_solar_style = "display: block;" if is_solar_active else "display: none;"
-    path_grid_charge_style = "display: block;" if (is_charging and solar_kw < 10.0) else "display: none;"
-    path_discharge_style = "display: block;" if is_discharging else "display: none;"
     
+    # Dynamic styling for path 2 (Battery-Grid connection)
+    if is_charging:
+        path_bat_grid_style = "display: block;"
+        path_bat_grid_color = "#2EC4B6"  # Charge color (green)
+        path_bat_grid_anim = "dash-reverse 15s linear infinite"  # flow from Grid to Battery
+        path_bat_grid_filter = "url(#glow-green)"
+    elif is_discharging:
+        path_bat_grid_style = "display: block;"
+        path_bat_grid_color = "#E71D36"  # Discharge color (red)
+        path_bat_grid_anim = "dash 15s linear infinite"  # flow from Battery to Grid
+        path_bat_grid_filter = "url(#glow-red)"
+    else:
+        path_bat_grid_style = "display: none;"
+        path_bat_grid_color = "transparent"
+        path_bat_grid_anim = "none"
+        path_bat_grid_filter = "none"
+        
     bolt_style = "display: block;" if is_charging else "display: none;"
     
     if net_power_kw > 0.5:
@@ -497,13 +512,13 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                 </defs>
-                <path d="M 60 30 C 130 5, 170 5, 200 30" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2" />
-                <path d="M 340 30 C 270 5, 230 5, 200 30" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2" />
-                <path d="M 200 70 C 200 100, 270 105, 340 80" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2" />
+                <!-- 2 Physical Connection Lines -->
+                <path d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2.5" />
+                <path d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2.5" />
                 
-                <path d="M 60 30 C 130 5, 170 5, 200 30" fill="none" stroke="#FF9F1C" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="8, 8" style="{path_solar_style} animation: dash 20s linear infinite;" />
-                <path d="M 340 30 C 270 5, 230 5, 200 30" fill="none" stroke="#2EC4B6" stroke-width="3.5" filter="url(#glow-green)" stroke-dasharray="8, 8" style="{path_grid_charge_style} animation: dash-reverse 20s linear infinite;" />
-                <path d="M 200 70 C 200 100, 270 105, 340 80" fill="none" stroke="#E71D36" stroke-width="3.5" filter="url(#glow-red)" stroke-dasharray="8, 8" style="{path_discharge_style} animation: dash 20s linear infinite;" />
+                <!-- Animated Active Overlays -->
+                <path d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="#FF9F1C" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="10, 10" style="{path_solar_style} animation: dash 15s linear infinite;" />
+                <path d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="{path_bat_grid_color}" stroke-width="3.5" filter="{path_bat_grid_filter}" stroke-dasharray="10, 10" style="{path_bat_grid_style} animation: {path_bat_grid_anim};" />
             </svg>
             
             <!-- Battery Node -->

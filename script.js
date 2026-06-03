@@ -45,8 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elSchematicSoc = document.getElementById('schematic-soc-val');
     const elSchematicGrid = document.getElementById('schematic-grid-val');
     const pathSolar = document.getElementById('flow-solar-bat');
-    const pathGridCharge = document.getElementById('flow-grid-bat');
-    const pathDischarge = document.getElementById('flow-bat-grid');
+    const pathBatGrid = document.getElementById('flow-bat-grid');
 
     // -------------------------------------------------------------
     // PARAMETERS & SYNC WITH UI
@@ -538,8 +537,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const isDaytime = (6 <= currentHour && currentHour <= 18);
         const isSolarActive = isDaytime && currentSolar > 2.0;
         if (pathSolar) pathSolar.style.display = isSolarActive ? 'block' : 'none';
-        if (pathGridCharge) pathGridCharge.style.display = (isCharging && currentSolar < 10.0) ? 'block' : 'none';
-        if (pathDischarge) pathDischarge.style.display = (netPowerKw < -0.5) ? 'block' : 'none';
+        
+        const isDischarging = netPowerKw < -0.5;
+        if (pathBatGrid) {
+            if (isCharging) {
+                pathBatGrid.style.display = 'block';
+                pathBatGrid.setAttribute('stroke', 'var(--color-green)');
+                pathBatGrid.classList.add('reverse');
+            } else if (isDischarging) {
+                pathBatGrid.style.display = 'block';
+                pathBatGrid.setAttribute('stroke', 'var(--color-red)');
+                pathBatGrid.classList.remove('reverse');
+            } else {
+                pathBatGrid.style.display = 'none';
+            }
+        }
         
         // Append row to logs table
         const tableBody = document.querySelector('#hourly-logs-table tbody');
@@ -898,15 +910,19 @@ document.addEventListener('DOMContentLoaded', () => {
             pathSolar.style.display = isSolarActive ? 'block' : 'none';
         }
         
-        // Grid charge path active if netPowerKw is positive (charging) and solar is not the only source
-        if (pathGridCharge) {
-            pathGridCharge.style.display = (isCharging && finalSolar < 10.0) ? 'block' : 'none';
-        }
-        
-        // Discharge path active if netPowerKw is negative (exporting)
         const isDischarging = finalNetPower < -0.5;
-        if (pathDischarge) {
-            pathDischarge.style.display = isDischarging ? 'block' : 'none';
+        if (pathBatGrid) {
+            if (isCharging) {
+                pathBatGrid.style.display = 'block';
+                pathBatGrid.setAttribute('stroke', 'var(--color-green)');
+                pathBatGrid.classList.add('reverse');
+            } else if (isDischarging) {
+                pathBatGrid.style.display = 'block';
+                pathBatGrid.setAttribute('stroke', 'var(--color-red)');
+                pathBatGrid.classList.remove('reverse');
+            } else {
+                pathBatGrid.style.display = 'none';
+            }
         }
 
         // 12-Hour Rolling Volatility Risk & Sharpe Ratio calculation

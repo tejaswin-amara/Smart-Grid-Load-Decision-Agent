@@ -800,4 +800,29 @@ h1, h2, h3, h4, .logo-text, .section-title {
     box-shadow: 0 0 10px rgba(231, 29, 54, 0.2);
 }
 
+/* -------------------------------------------------------------
+   SVG PATH DYNAMIC FLOW ANIMATIONS (SYSTEM-WIDE)
+   ------------------------------------------------------------- */
+.flow-path {
+    stroke-dasharray: 10, 10;
+    animation: dash 15s linear infinite;
+}
+
+.flow-path.reverse {
+    animation: dash-reverse 15s linear infinite !important;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+
+@keyframes dash-reverse {
+    to {
+        stroke-dashoffset: 1000;
+    }
+}
+
+
 
