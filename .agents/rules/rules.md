@@ -18,7 +18,7 @@ pwsh -ExecutionPolicy Bypass -File "D:/Skills/sovereign.ps1"; pwsh -ExecutionPol
 
 ## 🏗️ ARCHITECTURAL BOUNDARIES
 1.  **Strict Monorepo**: No external dependencies outside namespaced application directories may be added unless certified by Apex-grade intelligence.
-2.  **Capability Footprint**: The system is governed by **103 certified skills**. 
+2.  **Capability Footprint**: The system is governed by **158 certified skills**. 
 3.  **Complexity Limit**: The core is capped at **32 Primary Modules** (Enterprise Tier).
 4.  **Governance Supra-Structure**: `CONTRACT.md` remains the supreme law.
 
@@ -43,7 +43,7 @@ pwsh -ExecutionPolicy Bypass -File "D:/Skills/sovereign.ps1"; pwsh -ExecutionPol
 ## 🏛️ DECLARATION
     ✅ SOVEREIGN SYSTEM v13.0.0-PRODUCTION HARDENED ONLINE.
     Autonomous Trigger: `/sovereign` (v13.0.0-PRODUCTION Unified Suite)
-    94 Skills Certified | Zero Drift
+    158 Skills Certified | Zero Drift
 
 ## Learned Invariants (v13.0.0-PRODUCTION Final)
 - **A1: Direct-Path Standard**: Purge `npx` in MCP configs. Use absolute quoted `node.exe` paths for IPC stability.
@@ -55,3 +55,11 @@ pwsh -ExecutionPolicy Bypass -File "D:/Skills/sovereign.ps1"; pwsh -ExecutionPol
 - **A7: Mutation Safety**: Explicitly type `useMutation` generic parameters in TanStack Query to prevent type inference regressions in Next.js 15 builds.
 - **A8: Terminal Hardening**: Bake `VERCEL_GIT_COMMIT_SHA` into config files to resolve SHA parity mismatches in production environments.
 - **A9: Middleware API Bypass**: Standardized logic to detect `/api` regardless of locale prefix (e.g., `/en/api`) to ensure health/diagnostic stability.
+
+
+
+
+
+
+
+

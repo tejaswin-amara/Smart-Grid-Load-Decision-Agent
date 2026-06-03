@@ -22,6 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const btnRunSimulation = document.getElementById('run-simulation-btn');
     
+    // Mode Buttons Selectors
+    const btnSimple = document.getElementById('btn-mode-simple');
+    const btnAcademic = document.getElementById('btn-mode-academic');
+    
+    // Preset Buttons Selectors
+    const presetHome = document.getElementById('preset-home');
+    const presetStorm = document.getElementById('preset-storm');
+    const presetSolar = document.getElementById('preset-solar');
+    
     // KPI Cards Elements
     const elTotalProfit = document.getElementById('total-profit-val');
     const elProfitDelta = document.getElementById('profit-delta-val');
@@ -45,29 +54,121 @@ document.addEventListener('DOMContentLoaded', () => {
     let batteryCapacity = parseFloat(sliderCapacity.value);
     let maxPower = parseFloat(sliderMaxPower.value);
     let priceVolatility = parseFloat(sliderVolatility.value);
+    let isSimpleMode = true; // Default to Simple Mode for average user
+
+    const LABELS = {
+        academic: {
+            desc: "Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.",
+            profit: "Total Energy Arbitrage Profit",
+            wear: "Battery Wear & Degradation Cost",
+            reward: "Net Policy Value (Reward)",
+            volatility: "Volatility Risk Index",
+            sharpe: "Risk-Adjusted Arbitrage (Sharpe)",
+            configTitle: "Grid Configuration",
+            capacity: "Battery Capacity",
+            maxPower: "Max Power Output",
+            volatilitySlider: "AR(1) Price Volatility"
+        },
+        simple: {
+            desc: "Simulate how an AI battery agent automatically saves you money on electricity bills by storing cheap solar energy and avoiding peak pricing surges.",
+            profit: "Total Electricity Bill Savings",
+            wear: "Battery Lifespan Wear Cost",
+            reward: "AI Agent Efficiency Score",
+            volatility: "Market Price Volatility Rating",
+            sharpe: "Savings Consistency Rating",
+            configTitle: "Battery Parameters",
+            capacity: "Battery Energy Storage Capacity",
+            maxPower: "Charging / Discharging Speed",
+            volatilitySlider: "Utility Price Volatility"
+        }
+    };
+
+    function updateDashboardLabels() {
+        const mode = isSimpleMode ? 'simple' : 'academic';
+        
+        document.getElementById('header-desc').textContent = LABELS[mode].desc;
+        document.getElementById('label-profit').textContent = LABELS[mode].profit;
+        document.getElementById('label-wear').textContent = LABELS[mode].wear;
+        document.getElementById('label-reward').textContent = LABELS[mode].reward;
+        document.getElementById('label-volatility').textContent = LABELS[mode].volatility;
+        document.getElementById('label-sharpe').textContent = LABELS[mode].sharpe;
+        document.getElementById('sidebar-config-title').textContent = LABELS[mode].configTitle;
+        document.getElementById('label-capacity-title').textContent = LABELS[mode].capacity;
+        document.getElementById('label-maxpower-title').textContent = LABELS[mode].maxPower;
+        document.getElementById('label-volatility-title').textContent = LABELS[mode].volatilitySlider;
+    }
 
     // Event listeners to update label values instantly
     sliderCapacity.addEventListener('input', (e) => {
         batteryCapacity = parseFloat(e.target.value);
         sliderCapacityVal.textContent = `${batteryCapacity} kWh`;
+        [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
         runStochasticSimulation();
     });
 
     sliderMaxPower.addEventListener('input', (e) => {
         maxPower = parseFloat(e.target.value);
         sliderMaxPowerVal.textContent = `${maxPower} kW`;
+        [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
         runStochasticSimulation();
     });
 
     sliderVolatility.addEventListener('input', (e) => {
         priceVolatility = parseFloat(e.target.value);
         sliderVolatilityVal.textContent = priceVolatility.toFixed(2);
+        [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
         runStochasticSimulation();
     });
 
     btnRunSimulation.addEventListener('click', () => {
         runStochasticSimulation();
     });
+
+    btnSimple.addEventListener('click', () => {
+        isSimpleMode = true;
+        btnSimple.classList.add('active');
+        btnAcademic.classList.remove('active');
+        updateDashboardLabels();
+    });
+    
+    btnAcademic.addEventListener('click', () => {
+        isSimpleMode = false;
+        btnAcademic.classList.add('active');
+        btnSimple.classList.remove('active');
+        updateDashboardLabels();
+    });
+
+    function setPreset(capacity, power, volatility, activeBtn) {
+        sliderCapacity.value = capacity;
+        sliderCapacityVal.textContent = `${capacity} kWh`;
+        batteryCapacity = capacity;
+        
+        sliderMaxPower.value = power;
+        sliderMaxPowerVal.textContent = `${power} kW`;
+        maxPower = power;
+        
+        sliderVolatility.value = volatility;
+        sliderVolatilityVal.textContent = volatility.toFixed(2);
+        priceVolatility = volatility;
+        
+        [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
+        activeBtn.classList.add('active');
+        
+        runStochasticSimulation();
+    }
+    
+    presetHome.addEventListener('click', () => {
+        setPreset(100, 25, 0.03, presetHome);
+    });
+    
+    presetStorm.addEventListener('click', () => {
+        setPreset(150, 45, 0.08, presetStorm);
+    });
+    
+    presetSolar.addEventListener('click', () => {
+        setPreset(120, 15, 0.01, presetSolar);
+    });
+
 
     // -------------------------------------------------------------
     // STOCHASTIC SIMULATION CORE
@@ -475,6 +576,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Plotly.newPlot('soc-chart', [traceSoc], layout, { responsive: true, displayModeBar: false });
     }
 
-    // Run initial simulation on load
+    // Run initial simulation and setup labels on load
+    updateDashboardLabels();
     runStochasticSimulation();
 });
+

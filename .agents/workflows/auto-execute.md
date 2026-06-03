@@ -9,8 +9,7 @@ description: Ghost Protocol - Automated Task Execution
 
 // turbo-all
 
-> [!IMPORTANT]
-> Headless execution engine for the Sovereign v13.0.0-PRODUCTION. Every autonomous operation is strictly bounded by the [CONTRACT.md](../../CONTRACT.md) and governed by the 103-skill footprint.
+> Headless execution engine for the Sovereign v13.0.0-PRODUCTION. Every autonomous operation is strictly bounded by the [CONTRACT.md](../../CONTRACT.md) and governed by the 158-skill footprint.
 
 ## 🛡️ EXECUTION LAW
 1.  **Unified Trigger**: Auto-execution is managed through the [Sovereign v13.0.0-PRODUCTION Controller](./sovereign.md). 
@@ -41,3 +40,11 @@ Recover according to Sentinel Protocol v13.0.0-PRODUCTION.
 
 ## Integration with other workflows
 Linked to the Sovereign v13.0.0-PRODUCTION Execution Suite.
+
+
+
+
+
+
+
+

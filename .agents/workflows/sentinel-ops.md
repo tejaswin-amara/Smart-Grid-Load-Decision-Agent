@@ -33,7 +33,7 @@ To prevent infinite self-fixing loops:
 3. **Doctor-Check**: Recovery flows MUST trigger `doctor.ps1` after restoration.
 
 ## 🛡️ ENGINE 3: SECURITY & INTEGRITY MAINTENANCE
-1.  **Security Sync**: Refresh security expertise from the **103-skill manifest** every 24 hours.
+1.  **Security Sync**: Refresh security expertise from the **158-skill manifest** every 24 hours.
 2.  **Vulnerability Patching**: If a critical axiom is harvested, the Sentinel MUST execute an **Atomic Logic-Level Patch**.
 3.  **Governance Supra-Structure**: `CONTRACT.md` remains the supreme law.
 
@@ -52,3 +52,11 @@ Failure: RECURSIVE_FAIL or Fatal exception.
 
 ## Recovery Path on Failure
 Wait for manual reset or execute v13.0.0-PRODUCTION emergency failover.
+
+
+
+
+
+
+
+

@@ -55,11 +55,28 @@
             </div>
 
             <div class="sidebar-section">
-                <h3 class="section-title">Grid Configuration</h3>
+                <h3 class="section-title">Dashboard Mode</h3>
+                <div class="toggle-mode-container">
+                    <button class="mode-btn active" id="btn-mode-simple">🏡 Simple</button>
+                    <button class="mode-btn" id="btn-mode-academic">🎓 Academic</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">Scenario Presets</h3>
+                <div class="presets-grid">
+                    <button class="preset-btn active" id="preset-home">🏡 Home Battery</button>
+                    <button class="preset-btn" id="preset-storm">⛈️ Pricing Crisis</button>
+                    <button class="preset-btn" id="preset-solar">☀️ Solar Peak</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title" id="sidebar-config-title">Grid Configuration</h3>
                 
                 <div class="control-group">
                     <div class="control-header">
-                        <label for="battery-capacity">Battery Capacity</label>
+                        <label for="battery-capacity" id="label-capacity-title">Battery Capacity</label>
                         <span class="control-value" id="battery-capacity-val">100 kWh</span>
                     </div>
                     <input type="range" id="battery-capacity" min="50" max="200" value="100" step="10" class="premium-slider">
@@ -67,7 +84,7 @@
 
                 <div class="control-group">
                     <div class="control-header">
-                        <label for="max-power">Max Power Output</label>
+                        <label for="max-power" id="label-maxpower-title">Max Power Output</label>
                         <span class="control-value" id="max-power-val">25 kW</span>
                     </div>
                     <input type="range" id="max-power" min="10" max="50" value="25" step="5" class="premium-slider">
@@ -75,7 +92,7 @@
 
                 <div class="control-group">
                     <div class="control-header">
-                        <label for="price-volatility">AR(1) Price Volatility</label>
+                        <label for="price-volatility" id="label-volatility-title">AR(1) Price Volatility</label>
                         <span class="control-value" id="price-volatility-val">0.03</span>
                     </div>
                     <input type="range" id="price-volatility" min="0.01" max="0.10" value="0.03" step="0.01" class="premium-slider">
@@ -97,7 +114,7 @@
             <header class="dashboard-header">
                 <div class="header-text">
                     <h1>Stochastic Smart Grid Decision Dashboard</h1>
-                    <p class="description">Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.</p>
+                    <p class="description" id="header-desc">Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.</p>
                 </div>
             </header>
 
@@ -106,7 +123,7 @@
                 <div class="metric-card" id="metric-profit-card">
                     <div class="metric-icon profit">💰</div>
                     <div class="metric-content">
-                        <span class="metric-label">Total Energy Arbitrage Profit</span>
+                        <span class="metric-label" id="label-profit">Total Energy Arbitrage Profit</span>
                         <h3 class="metric-value" id="total-profit-val">$0.00</h3>
                         <span class="metric-delta positive" id="profit-delta-val">$0.00 / day</span>
                     </div>
@@ -115,7 +132,7 @@
                 <div class="metric-card" id="metric-wear-card">
                     <div class="metric-icon wear">⚙️</div>
                     <div class="metric-content">
-                        <span class="metric-label">Battery Wear & Degradation Cost</span>
+                        <span class="metric-label" id="label-wear">Battery Wear & Degradation Cost</span>
                         <h3 class="metric-value" id="total-wear-val">$0.00</h3>
                         <span class="metric-delta negative" id="wear-delta-val">-$0.00 / day</span>
                     </div>
@@ -124,25 +141,25 @@
                 <div class="metric-card" id="metric-reward-card">
                     <div class="metric-icon reward">⭐</div>
                     <div class="metric-content">
-                        <span class="metric-label">Net Policy Value (Reward)</span>
+                        <span class="metric-label" id="label-reward">Net Policy Value (Reward)</span>
                         <h3 class="metric-value" id="net-reward-val">0.00</h3>
-                        <span class="metric-delta neutral">Robust SAC Policy</span>
+                        <span class="metric-delta neutral" id="reward-delta-val">Robust SAC Policy</span>
                     </div>
                 </div>
 
                 <div class="metric-card" id="metric-volatility-card">
                     <div class="metric-icon wear" style="border-color: rgba(255, 159, 28, 0.25); background: rgba(255, 159, 28, 0.08);">📉</div>
                     <div class="metric-content">
-                        <span class="metric-label">Volatility Risk Index</span>
+                        <span class="metric-label" id="label-volatility">Volatility Risk Index</span>
                         <h3 class="metric-value" id="volatility-val">0.0000</h3>
-                        <span class="metric-delta neutral">Hourly Deviation</span>
+                        <span class="metric-delta neutral" id="volatility-delta-val">Hourly Deviation</span>
                     </div>
                 </div>
 
                 <div class="metric-card" id="metric-sharpe-card">
                     <div class="metric-icon profit" style="border-color: rgba(0, 245, 212, 0.25); background: rgba(0, 245, 212, 0.08);">⚖️</div>
                     <div class="metric-content">
-                        <span class="metric-label">Risk-Adjusted Arbitrage (Sharpe)</span>
+                        <span class="metric-label" id="label-sharpe">Risk-Adjusted Arbitrage (Sharpe)</span>
                         <h3 class="metric-value" id="sharpe-val">0.00%</h3>
                         <span class="metric-delta positive" id="sharpe-delta-val">Profit per Risk Unit</span>
                     </div>

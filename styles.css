@@ -603,3 +603,73 @@ h1, h2, h3, h4, .logo-text, .section-title {
     color: var(--text-muted);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* -------------------------------------------------------------
+   ACCESSIBILITY & PRESETS BUTTONS
+   ------------------------------------------------------------- */
+.toggle-mode-container, .presets-grid {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.toggle-mode-container {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-premium);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.mode-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.mode-btn.active {
+    background: rgba(0, 245, 212, 0.1);
+    color: var(--color-primary);
+    border: 1px solid rgba(0, 245, 212, 0.25);
+}
+
+.presets-grid {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.preset-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-premium);
+    color: var(--text-secondary);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    text-align: left;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.preset-btn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+.preset-btn.active {
+    background: rgba(123, 44, 191, 0.12);
+    border-color: var(--color-secondary);
+    color: #F3F4F6;
+    box-shadow: 0 0 10px rgba(123, 44, 191, 0.25);
+}
+

@@ -53,7 +53,7 @@ If new `.md` files are added to `.agents/rules/` or `.agents/workflows/` after t
 
 ## PHASE 3: INGEST D:/Skills LIBRARY
 
-1. Read `D:/Skills/INDEX.md` — The master index of all 103 certified skill repositories.
+1. Read `D:/Skills/INDEX.md` — The master index of all 158 certified skill repositories.
 2. Read `.agents/knowledge/harvested_skills.md` — The harvester output showing which skills matched this project.
 3. For every matched skill that has a `rules.md` or `CLAUDE.md` in its directory, read that file and adopt its patterns as reference architecture.
 
@@ -92,3 +92,11 @@ After completing all phases, confirm:
 
 ## ⚠️ PERSISTENCE MANDATE
 Once `/sovereign` has been executed, ALL ingested rules, workflows, and skills remain Active Law for the **entire duration** of this chat session. They do not expire. They are not optional. The agent must not selectively ignore any directive.
+
+
+
+
+
+
+
+

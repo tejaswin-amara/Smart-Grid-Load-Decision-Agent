@@ -1,16 +1,16 @@
 # 🚀 LOCAL SKILLS INTEGRATION (v13.0.0-PRODUCTION HARDENED)
-> Read this before starting any task to leverage the 103 certified skills in the library.
+> Read this before starting any task to leverage the 158 certified skills in the library.
 
 ## Purpose & Rule
-Enforces the mandatory indexing of the **103 certified skills** at the start of every session, ensuring access to the Hardened Enterprise Library.
+Enforces the mandatory indexing of the **158 certified skills** at the start of every session, ensuring access to the Hardened Enterprise Library.
 
 At the start of every session:
-1. **Read Internal Manifests**: Check `D:/Skills/MANIFEST.json` and `.agents/knowledge/harvested_skills.md`.
-2. **Use the 103-skill Library First**: Before independent research, check if a relevant axiom exists in `D:/Skills/`.
+1. **Read Internal Manifests**: Check `D:/Skills/sovereign.config.json` and `.agents/knowledge/harvested_skills.md`.
+2. **Use the 158-skill Library First**: Before independent research, check if a relevant axiom exists in `D:/Skills/`.
 3. **Reference by tier**: Tier 1 (core stack) should be checked for every task. Lower tiers for specialized work.
 
 ## ⚡ THE ENTERPRISE LIBRARY
-We have access to a library of **94 specialized expert skills** located in:
+We have access to a library of **158 specialized expert skills** located in:
 - **`D:\Skills\`** (Certified Sovereignty)
 
 ## 📖 How to "Invoke" a Skill
@@ -47,3 +47,11 @@ D:/Skills/better-auth/     → Authentication
 
 ---
 *Integrated into IDE Agent Workflow — 2026-03-20*
+
+
+
+
+
+
+
+
