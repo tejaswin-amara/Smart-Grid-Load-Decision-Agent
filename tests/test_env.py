@@ -47,3 +47,11 @@ def test_reward_components():
     # -power_kw * price * dt_hours / 1000.0
     # -(-10.0) * 50.0 * (1/60) / 1000 = +0.00833...
     assert reward > 0, "Charging at low prices should give positive arbitrage reward"
+
+def test_weather_transitions():
+    env = AdvancedSmartGridEnv(seed=42)
+    env.reset()
+    obs, reward, done, truncated, info = env.step(np.array([0.0]))
+    assert 'weather' in info, "Weather info should be mapped in step metadata output"
+    assert info['weather'] in ["SUNNY", "CLOUDY", "STORMY"], "Weather labels must be valid string states"
+

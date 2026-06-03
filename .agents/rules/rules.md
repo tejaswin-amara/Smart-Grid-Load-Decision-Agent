@@ -63,3 +63,5 @@ pwsh -ExecutionPolicy Bypass -File "D:/Skills/sovereign.ps1"; pwsh -ExecutionPol
 
 
 
+
+

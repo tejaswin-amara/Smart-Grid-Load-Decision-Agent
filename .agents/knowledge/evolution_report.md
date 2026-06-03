@@ -1,5 +1,5 @@
 # SOVEREIGN EVOLUTION REPORT (v13.0.0-PRODUCTION)
-> Generated: 2026-06-03 22:11:47
+> Generated: 2026-06-03 22:24:39
 
 ## Intelligence Signals
 | Signal | Value |
@@ -9,7 +9,7 @@
 | Detected Tags | 0 |
 | Global Skills | 158 |
 | Local Files | 16 |
-| Learnings Recorded | 13 |
+| Learnings Recorded | 14 |
 
 ## Drift Analysis (0 issues)
 
@@ -20,7 +20,7 @@
 - [x] **COMPLETE**: All detected dependencies have matching skills.
 
 ## Learnings Integration
-- [ ] **INTEGRATE**: 13 learnings from learnings.md pending review.
+- [ ] **INTEGRATE**: 14 learnings from learnings.md pending review.
 
 ## Recommended Actions
 1. Run /sovereign to re-sync after addressing drift issues.

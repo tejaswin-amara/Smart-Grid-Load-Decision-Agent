@@ -867,6 +867,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const batteryLvlVisual = document.getElementById('visual-battery-level');
         const batteryBoltVisual = document.getElementById('visual-battery-bolt');
+        const isCharging = finalNetPower > 0.5;
+        
         if (batteryLvlVisual) {
             batteryLvlVisual.style.width = `${finalSoc.toFixed(0)}%`;
             if (finalSoc < 20.0) {
@@ -897,7 +899,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Grid charge path active if netPowerKw is positive (charging) and solar is not the only source
-        const isCharging = finalNetPower > 0.5;
         if (pathGridCharge) {
             pathGridCharge.style.display = (isCharging && finalSolar < 10.0) ? 'block' : 'none';
         }

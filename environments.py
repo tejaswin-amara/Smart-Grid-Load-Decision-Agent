@@ -93,6 +93,16 @@ class AdvancedSmartGridEnv(gym.Env):
         self.cumulative_reward: float = 0.0
         self.cell_temp: float = 25.0
         
+        # Markov Chain Weather state parameters
+        self.weather_state: int = 0
+        self.weather_names = ["SUNNY", "CLOUDY", "STORMY"]
+        self.weather_multipliers = [1.0, 0.4, 0.08]
+        self.weather_transition_matrix = [
+            [0.75, 0.20, 0.05],
+            [0.25, 0.60, 0.15],
+            [0.10, 0.35, 0.55]
+        ]
+        
         logger.info("AdvancedSmartGridEnv initialized with config: %s", self.config)
     
     def _generate_solar_profile(self, time_of_day: float) -> float:
@@ -117,10 +127,20 @@ class AdvancedSmartGridEnv(gym.Env):
     
     def _update_stochastic_processes(self) -> Tuple[float, float]:
         """
-        Update AR(1) stochastic processes for price and solar.
-        
-        Process: x_{t+1} = mean + phi * (x_t - mean) + epsilon_t
+        Update AR(1) stochastic processes for price and solar, modified by Markov weather states.
         """
+        # Update weather state hourly (every 60 steps) using transition matrix
+        if self.current_step % 60 == 0:
+            rand = self.rng.uniform()
+            cumulative_prob = 0.0
+            for s in range(3):
+                cumulative_prob += self.weather_transition_matrix[self.weather_state][s]
+                if rand <= cumulative_prob:
+                    self.weather_state = s
+                    break
+        
+        weather_multiplier = self.weather_multipliers[self.weather_state]
+
         # Update price using AR(1)
         price_clean = self._generate_price_profile(self.current_step / 60.0)
         price_shock = self.rng.normal(0, self.price_noise_std)
@@ -142,7 +162,10 @@ class AdvancedSmartGridEnv(gym.Env):
         )
         self.current_solar_base = np.clip(self.current_solar_base, 0.0, 1.0)
         
-        return self.current_price, self.current_solar_base
+        # Scale solar base by weather state coefficient
+        actual_solar = self.current_solar_base * weather_multiplier
+        
+        return self.current_price, actual_solar
     
     def _calculate_charging_efficiency(self, soc: float) -> float:
         """
@@ -291,7 +314,8 @@ class AdvancedSmartGridEnv(gym.Env):
             'power_kw': actual_power,
             'time_of_day': time_of_day,
             'total_energy': self.total_energy_processed,
-            'cumulative_reward': self.cumulative_reward
+            'cumulative_reward': self.cumulative_reward,
+            'weather': self.weather_names[self.weather_state]
         }
         
         return observation, float(reward), terminated, False, info
@@ -314,6 +338,7 @@ class AdvancedSmartGridEnv(gym.Env):
         self.total_energy_processed = 0.0
         self.cumulative_reward = 0.0
         self.cell_temp = 25.0
+        self.weather_state = 0
         
         observation = np.array([
             self.soc,
