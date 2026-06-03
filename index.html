@@ -212,16 +212,7 @@
                 <div class="schematic-panel">
                     <h2>🔌 Live Microgrid Power Flow Schematic</h2>
                     <div class="schematic-container">
-                        <!-- Node 1: Solar Gen -->
-                        <div class="schematic-node solar-node" id="node-solar">
-                            <span class="node-icon">☀️</span>
-                            <span class="node-label">Solar PV Array</span>
-                            <span class="node-value" id="schematic-solar-val">0.0 kW</span>
-                        </div>
-
-                        <!-- Animated SVG Flow Connections (2-Line Physical Layout) -->
-                        <svg class="schematic-svg" viewBox="0 0 400 120">
-                            <!-- Definitions for filters -->
+                        <svg viewBox="0 0 600 160" class="schematic-canvas">
                             <defs>
                                 <filter id="glow-orange" x="-20%" y="-20%" width="140%" height="140%">
                                     <feGaussianBlur stdDeviation="3" result="blur" />
@@ -239,36 +230,49 @@
                             
                             <!-- Static background connection paths (2 physical lines) -->
                             <!-- Line 1: Solar to Battery -->
-                            <path d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
+                            <path d="M 140 82 C 165 52, 210 52, 235 82" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4" />
                             <!-- Line 2: Battery to Grid -->
-                            <path d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3" />
+                            <path d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4" />
                             
                             <!-- Active dynamic glowing flow paths -->
                             <!-- Path 1: Solar to Battery (always Orange, flows Left to Right) -->
-                            <path id="flow-solar-bat" class="flow-path" d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="var(--color-orange)" stroke-width="3.5" filter="url(#glow-orange)" style="display: none;" />
+                            <path id="flow-solar-bat" class="flow-path" d="M 140 82 C 165 52, 210 52, 235 82" fill="none" stroke="var(--color-orange)" stroke-width="3.5" filter="url(#glow-orange)" style="display: none;" />
                             <!-- Path 2: Battery to Grid (dynamic color/direction based on state) -->
-                            <path id="flow-bat-grid" class="flow-path" d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="var(--color-green)" stroke-width="3.5" filter="url(#glow-green)" style="display: none;" />
-                        </svg>
-
-                        <!-- Node 2: Battery SoC -->
-                        <div class="schematic-node battery-node" id="node-battery">
-                            <div class="battery-wrapper">
-                                <div class="battery-body">
-                                    <div class="battery-level" id="visual-battery-level" style="width: 50%;"></div>
-                                    <span class="battery-bolt" id="visual-battery-bolt">⚡</span>
+                            <path id="flow-bat-grid" class="flow-path" d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="var(--color-green)" stroke-width="3.5" filter="url(#glow-green)" style="display: none;" />
+                            
+                            <!-- Solar Node (X:15, Y:35, W:125, H:95) -->
+                            <foreignObject x="15" y="32" width="125" height="100">
+                                <div class="schematic-node solar-node" id="node-solar">
+                                    <span class="node-icon">☀️</span>
+                                    <span class="node-label">Solar PV Array</span>
+                                    <span class="node-value" id="schematic-solar-val">0.0 kW</span>
                                 </div>
-                                <div class="battery-head"></div>
-                            </div>
-                            <span class="node-label">Smart Battery</span>
-                            <span class="node-value" id="schematic-soc-val">50.0%</span>
-                        </div>
+                            </foreignObject>
 
-                        <!-- Node 3: Utility Grid -->
-                        <div class="schematic-node grid-node" id="node-grid">
-                            <span class="node-icon">⚡</span>
-                            <span class="node-label">Utility Grid</span>
-                            <span class="node-value" id="schematic-grid-val">Active</span>
-                        </div>
+                            <!-- Battery Node (X:235, Y:25, W:130, H:110) -->
+                            <foreignObject x="235" y="22" width="130" height="116">
+                                <div class="schematic-node battery-node" id="node-battery">
+                                    <div class="battery-wrapper">
+                                        <div class="battery-body">
+                                            <div class="battery-level" id="visual-battery-level" style="width: 50%;"></div>
+                                            <span class="battery-bolt" id="visual-battery-bolt">⚡</span>
+                                        </div>
+                                        <div class="battery-head"></div>
+                                    </div>
+                                    <span class="node-label">Smart Battery</span>
+                                    <span class="node-value" id="schematic-soc-val">50.0%</span>
+                                </div>
+                            </foreignObject>
+
+                            <!-- Grid Node (X:460, Y:35, W:125, H:95) -->
+                            <foreignObject x="460" y="32" width="125" height="100">
+                                <div class="schematic-node grid-node" id="node-grid">
+                                    <span class="node-icon">⚡</span>
+                                    <span class="node-label">Utility Grid</span>
+                                    <span class="node-value" id="schematic-grid-val">Active</span>
+                                </div>
+                            </foreignObject>
+                        </svg>
                     </div>
                 </div>
             </section>

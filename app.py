@@ -484,66 +484,112 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
     else:
         bat_fill = "#2EC4B6"
         
+    # Class mapping for dynamic node pulse highlights
+    solar_node_class = "schematic-node solar-node solar-active" if is_solar_active else "schematic-node solar-node"
+    
+    if is_charging:
+        bat_node_class = "schematic-node battery-node charging-active"
+        grid_node_class = "schematic-node grid-node charging-active"
+    elif is_discharging:
+        bat_node_class = "schematic-node battery-node discharging-active"
+        grid_node_class = "schematic-node grid-node discharging-active"
+    else:
+        bat_node_class = "schematic-node battery-node"
+        grid_node_class = "schematic-node grid-node"
+        
     svg_html = f"""
     <div style="background: rgba(16, 24, 40, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; font-family: 'Outfit', sans-serif;">
         <h4 style="color: #00F5D4; margin-top: 0; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">🔌 Live Microgrid Power Flow Schematic</h4>
-        <div style="display: flex; justify-content: space-around; align-items: center; position: relative; height: 110px;">
-            
-            <!-- Solar Node -->
-            <div style="display: flex; flex-direction: column; align-items: center; width: 110px; z-index: 2;">
-                <span style="font-size: 24px;">☀️</span>
-                <span style="font-size: 10px; color: #9CA3AF; margin-top: 4px;">Solar PV Array</span>
-                <span style="font-size: 12px; font-weight: 600; color: #FF9F1C; margin-top: 2px;">{solar_kw:.1f} kW</span>
-            </div>
-            
-            <!-- Flow Paths -->
-            <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;" viewBox="0 0 400 120">
+        <div style="position: relative; width: 100%; height: 170px; overflow: visible;">
+            <svg viewBox="0 0 600 160" style="width: 100%; height: 100%; display: block; overflow: visible;">
                 <defs>
                     <filter id="glow-orange" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="2" result="blur" />
+                        <feGaussianBlur stdDeviation="3" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                     <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="2" result="blur" />
+                        <feGaussianBlur stdDeviation="3" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                     <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="2" result="blur" />
+                        <feGaussianBlur stdDeviation="3" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                     </filter>
                 </defs>
-                <!-- 2 Physical Connection Lines -->
-                <path d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2.5" />
-                <path d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="2.5" />
                 
-                <!-- Animated Active Overlays -->
-                <path d="M 60 45 C 100 15, 160 15, 200 45" fill="none" stroke="#FF9F1C" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="10, 10" style="{path_solar_style} animation: dash 15s linear infinite;" />
-                <path d="M 200 45 C 240 15, 300 15, 340 45" fill="none" stroke="{path_bat_grid_color}" stroke-width="3.5" filter="{path_bat_grid_filter}" stroke-dasharray="10, 10" style="{path_bat_grid_style} animation: {path_bat_grid_anim};" />
-            </svg>
-            
-            <!-- Battery Node -->
-            <div style="display: flex; flex-direction: column; align-items: center; width: 110px; z-index: 2;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    <div style="width: 40px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 4px; padding: 1.5px; display: flex; align-items: center; background: rgba(0,0,0,0.3); position: relative;">
-                        <div style="width: {soc_percent:.0f}%; height: 100%; background: {bat_fill}; border-radius: 1.5px; transition: width 0.3s ease;"></div>
-                        <span style="{bolt_style} position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 9px; color: #00F5D4; text-shadow: 0 0 2px black;">⚡</span>
+                <!-- Static background connection paths (2 physical lines) -->
+                <path d="M 140 82 C 165 52, 210 52, 235 82" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4" />
+                <path d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4" />
+                
+                <!-- Active dynamic glowing flow paths -->
+                <path d="M 140 82 C 165 52, 210 52, 235 82" fill="none" stroke="#FF9F1C" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="10, 10" style="{path_solar_style} animation: dash 15s linear infinite;" />
+                <path d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="{path_bat_grid_color}" stroke-width="3.5" filter="{path_bat_grid_filter}" stroke-dasharray="10, 10" style="{path_bat_grid_style} animation: {path_bat_grid_anim};" />
+                
+                <!-- Solar Node -->
+                <foreignObject x="15" y="32" width="125" height="100">
+                    <div class="{solar_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
+                        <span style="font-size: 22px; margin-bottom: 4px;">☀️</span>
+                        <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Solar PV Array</span>
+                        <span style="font-size: 11px; font-weight: 600; color: #FF9F1C; margin-top: 3px;">{solar_kw:.1f} kW</span>
                     </div>
-                    <div style="width: 2px; height: 6px; background: rgba(255, 255, 255, 0.4); border-radius: 0 1px 1px 0;"></div>
-                </div>
-                <span style="font-size: 10px; color: #9CA3AF;">Smart Battery</span>
-                <span style="font-size: 12px; font-weight: 600; color: #00F5D4; margin-top: 2px;">{soc_percent:.1f}%</span>
-            </div>
-            
-            <!-- Grid Node -->
-            <div style="display: flex; flex-direction: column; align-items: center; width: 110px; z-index: 2;">
-                <span style="font-size: 24px;">⚡</span>
-                <span style="font-size: 10px; color: #9CA3AF; margin-top: 4px;">Utility Grid</span>
-                <span style="font-size: 11px; font-weight: 600; color: #2EC4B6; margin-top: 2px; text-align: center;">{grid_text}</span>
-            </div>
+                </foreignObject>
+
+                <!-- Battery Node -->
+                <foreignObject x="235" y="22" width="130" height="116">
+                    <div class="{bat_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
+                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                            <div style="width: 40px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 4px; padding: 1.5px; display: flex; align-items: center; background: rgba(0,0,0,0.3); position: relative;">
+                                <div style="width: {soc_percent:.0f}%; height: 100%; background: {bat_fill}; border-radius: 1.5px; transition: width 0.3s ease;"></div>
+                                <span style="{bolt_style} position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 9px; color: #00F5D4; text-shadow: 0 0 2px black;">⚡</span>
+                            </div>
+                            <div style="width: 2px; height: 6px; background: rgba(255, 255, 255, 0.4); border-radius: 0 1px 1px 0;"></div>
+                        </div>
+                        <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Smart Battery</span>
+                        <span style="font-size: 11px; font-weight: 600; color: #00F5D4; margin-top: 3px;">{soc_percent:.1f}%</span>
+                    </div>
+                </foreignObject>
+
+                <!-- Grid Node -->
+                <foreignObject x="460" y="32" width="125" height="100">
+                    <div class="{grid_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
+                        <span style="font-size: 22px; margin-bottom: 4px;">⚡</span>
+                        <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Utility Grid</span>
+                        <span style="font-size: 11px; font-weight: 600; color: #2EC4B6; margin-top: 3px; text-align: center;">{grid_text}</span>
+                    </div>
+                </foreignObject>
+            </svg>
         </div>
         <style>
             @keyframes dash {{ to {{ stroke-dashoffset: -1000; }} }}
             @keyframes dash-reverse {{ to {{ stroke-dashoffset: 1000; }} }}
+            
+            .solar-active {{
+                box-shadow: 0 0 15px rgba(255, 159, 28, 0.25) !important;
+                border-color: rgba(255, 159, 28, 0.5) !important;
+                animation: solar-pulse 2s infinite alternate;
+            }}
+            .charging-active {{
+                box-shadow: 0 0 15px rgba(46, 196, 182, 0.25) !important;
+                border-color: rgba(46, 196, 182, 0.5) !important;
+                animation: charge-pulse 2s infinite alternate;
+            }}
+            .discharging-active {{
+                box-shadow: 0 0 15px rgba(231, 29, 54, 0.25) !important;
+                border-color: rgba(231, 29, 54, 0.5) !important;
+                animation: discharge-pulse 2s infinite alternate;
+            }}
+            @keyframes solar-pulse {{
+                from {{ box-shadow: 0 0 8px rgba(255, 159, 28, 0.15); }}
+                to {{ box-shadow: 0 0 18px rgba(255, 159, 28, 0.35); }}
+            }}
+            @keyframes charge-pulse {{
+                from {{ box-shadow: 0 0 8px rgba(46, 196, 182, 0.15); }}
+                to {{ box-shadow: 0 0 18px rgba(46, 196, 182, 0.35); }}
+            }}
+            @keyframes discharge-pulse {{
+                from {{ box-shadow: 0 0 8px rgba(231, 29, 54, 0.15); }}
+                to {{ box-shadow: 0 0 18px rgba(231, 29, 54, 0.35); }}
+            }}
         </style>
     </div>
     """

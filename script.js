@@ -521,6 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        
         const isCharging = netPowerKw > 0.5;
         if (batteryBoltVisual) {
             batteryBoltVisual.style.display = isCharging ? 'block' : 'none';
@@ -551,6 +552,25 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 pathBatGrid.style.display = 'none';
             }
+        }
+
+        // Toggle active aura pulse effects on SVG-embedded nodes
+        const nodeSolar = document.getElementById('node-solar');
+        const nodeBattery = document.getElementById('node-battery');
+        const nodeGrid = document.getElementById('node-grid');
+        if (nodeSolar) {
+            if (isSolarActive) nodeSolar.classList.add('solar-active');
+            else nodeSolar.classList.remove('solar-active');
+        }
+        if (nodeBattery) {
+            nodeBattery.classList.remove('charging-active', 'discharging-active');
+            if (isCharging) nodeBattery.classList.add('charging-active');
+            else if (isDischarging) nodeBattery.classList.add('discharging-active');
+        }
+        if (nodeGrid) {
+            nodeGrid.classList.remove('charging-active', 'discharging-active');
+            if (isCharging) nodeGrid.classList.add('charging-active');
+            else if (isDischarging) nodeGrid.classList.add('discharging-active');
         }
         
         // Append row to logs table
@@ -923,6 +943,25 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 pathBatGrid.style.display = 'none';
             }
+        }
+
+        // Toggle active aura pulse effects on SVG-embedded nodes at end of simulation
+        const nodeSolar = document.getElementById('node-solar');
+        const nodeBattery = document.getElementById('node-battery');
+        const nodeGrid = document.getElementById('node-grid');
+        if (nodeSolar) {
+            if (isSolarActive) nodeSolar.classList.add('solar-active');
+            else nodeSolar.classList.remove('solar-active');
+        }
+        if (nodeBattery) {
+            nodeBattery.classList.remove('charging-active', 'discharging-active');
+            if (isCharging) nodeBattery.classList.add('charging-active');
+            else if (isDischarging) nodeBattery.classList.add('discharging-active');
+        }
+        if (nodeGrid) {
+            nodeGrid.classList.remove('charging-active', 'discharging-active');
+            if (isCharging) nodeGrid.classList.add('charging-active');
+            else if (isDischarging) nodeGrid.classList.add('discharging-active');
         }
 
         // 12-Hour Rolling Volatility Risk & Sharpe Ratio calculation
