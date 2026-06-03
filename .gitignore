@@ -3,7 +3,8 @@ env/
 .env/
 __pycache__/
 *.pyc
-.DS_Store
+.agents/
+.pytest_cache/
 
 # Do NOT ignore the model directory as it contains required ONNX and PKL files
 !best_grid_model/
