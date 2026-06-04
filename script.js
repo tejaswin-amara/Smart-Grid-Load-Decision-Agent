@@ -567,6 +567,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function displayAiMetrics() {
+        document.getElementById('game-ai-profit').textContent = `$${aiTotalProfit.toFixed(2)}`;
+        document.getElementById('game-ai-wear').textContent = `$${aiTotalWear.toFixed(2)}`;
+        document.getElementById('game-ai-reward').textContent = aiCumulativeReward.toFixed(2);
+        
+        if (aiHistory.stepRewards && aiHistory.stepRewards.length > 1) {
+            const stats = calculateScorecardStats(aiHistory.stepRewards);
+            document.getElementById('game-ai-volatility').textContent = stats.volatility.toFixed(4);
+            document.getElementById('game-ai-sharpe').textContent = `${stats.sharpe.toFixed(2)}%`;
+        } else {
+            document.getElementById('game-ai-volatility').textContent = "0.0000";
+            document.getElementById('game-ai-sharpe').textContent = "0.00%";
+        }
+    }
+
     function updateGameDisplay() {
         const nextStep = Math.min(47, gameStep);
         const currentPrice = gamePriceSequence[nextStep];
