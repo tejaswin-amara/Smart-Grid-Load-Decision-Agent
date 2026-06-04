@@ -44,7 +44,7 @@ By modeling volatile electricity markets and solar generation as Autoregressive 
 
 | Innovation | Core Breakthrough | Key Benefit |
 | :--- | :--- | :--- |
-| **🔮 8D Lookahead Forecast** | Expands the state-space tensor to include price predictions at $t+1, t+2, t+3, \text{ and } t+4$ hours. | Allows the actor network to predict peak generation windows and optimize deep-discharge cycles preemptively. |
+| **🚧 Planned** | **8D Lookahead Forecast** | Will expand the state-space tensor to include price predictions at $t+1, t+2, t+3, \text{ and } t+4$ hours to let the actor predict peak generation windows. |
 | **📈 Stochastic AR(1) Modeling** | Simulates electricity pricing and solar irradiance as mean-reverting Autoregressive random shock transitions. | Provides mathematically rigorous uncertainty boundaries for continuous action space stability. |
 | **💾 Production Serialization** | Stable-Baselines3 `.zip` serialization with `VecNormalize` checkpoint support. | Enables portable model loading and deterministic inference with pre-fitted observation normalization statistics. |
 | **⚡ Serverless Edge Wasm** | Compiles and loads the entire data science stack client-side natively inside the browser via `stlite`. | Guarantees absolute user privacy, zero host-side server latency, and infinite scaling capabilities. |
@@ -182,7 +182,7 @@ Access the zero-latency, serverless interactive WebAssembly dashboard here:
 👉 **[Launch Live Serverless Dashboard](https://tejaswin-amara.github.io/Smart-Grid-Load-Decision-Agent/)**
 
 > [!IMPORTANT]
-> **WebAssembly Serverless Architecture:** The entire interactive experience is executing natively on your CPU in the browser using Wasm. Plotly graphs, Gymnasium model transitions, and ONNX runtime are fully client-side (no backend required!).
+> **WebAssembly Serverless Architecture:** The entire interactive experience is executing natively on your CPU in the browser using Wasm. Plotly graphs, Gymnasium model transitions, and the neural network heuristics are fully client-side (no backend required!).
 
 ---
 
