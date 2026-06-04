@@ -1,10 +1,10 @@
 """
-Project: Production-Grade Smart Grid Load Decision Agent (Final Capstone)
+Project: Stochastic Smart Grid Load Decision Agent
 Course: Computational Foundations for Artificial Intelligence
 Author: Tejaswin Amara
-Academic Standing: I Year (III Semester)
 Roll Number: 2520090104
 Program: CSIT, KLH University (Bachupally Campus)
+Academic Standing: I Year (III Semester)
 """
 
 import logging
@@ -18,11 +18,18 @@ logger = logging.getLogger(__name__)
 
 __all__ = ['GridConfig', 'AdvancedSmartGridEnv']
 
-# Configurable Reward Weights
-ARBITRAGE_WEIGHT = 1.0       # Multiplier for financial arbitrage profit per kW
-GREEN_BONUS_WEIGHT = 0.5     # $ bonus per kW @ 100% solar
-WEAR_WEIGHT_MULTIPLIER = 1.0 # Multiplier applied to the dynamic degradation cost
-SOC_CENTERING_WEIGHT = 10.0  # Quadratic penalty multiplier to stay at 50% SoC
+# ── REWARD WEIGHTS ────────────────────────────────────────────
+ARBITRAGE_WEIGHT     = 1.0    # multiplier for financial arbitrage profit
+GREEN_BONUS_WEIGHT   = 0.5    # $/kW bonus at 100% solar
+WEAR_WEIGHT          = 1.0    # multiplier on dynamic degradation cost
+SOC_CENTERING_WEIGHT = 10.0   # quadratic penalty to stay at 50% SoC
+
+# ── ENVIRONMENT BOUNDS ────────────────────────────────────────
+PRICE_MIN_USD_MWH    = 50.0
+PRICE_MAX_USD_MWH    = 400.0
+PRICE_MEAN_USD_MWH   = 150.0
+AR1_PRICE_PHI        = 0.8    # autocorrelation coefficient
+AR1_SOLAR_PHI        = 0.7
 
 
 @dataclass
@@ -81,9 +88,9 @@ class AdvancedSmartGridEnv(gym.Env):
         self.max_steps: int = 1440  # 24 hours * 60 minutes
         
         # AR(1) process parameters for stochasticity
-        self.price_mean: float = 150.0
-        self.price_phi: float = 0.8  # AR(1) autocorrelation
-        self.solar_phi: float = 0.7
+        self.price_mean: float = PRICE_MEAN_USD_MWH
+        self.price_phi: float = AR1_PRICE_PHI  # AR(1) autocorrelation
+        self.solar_phi: float = AR1_SOLAR_PHI
         self.current_price: float = self.price_mean
         self.current_solar_base: float = 0.0
         
@@ -152,7 +159,7 @@ class AdvancedSmartGridEnv(gym.Env):
             self.price_phi * (self.current_price - self.price_mean) + 
             price_shock
         )
-        self.current_price = np.clip(self.current_price, 50.0, 400.0)
+        self.current_price = np.clip(self.current_price, PRICE_MIN_USD_MWH, PRICE_MAX_USD_MWH)
         
         # Update solar using AR(1)
         time_of_day = (self.current_step / 60.0) % 24.0
@@ -260,7 +267,7 @@ class AdvancedSmartGridEnv(gym.Env):
         temp_diff = self.cell_temp - T_nominal
         dynamic_degradation_rate = self.config.degradation_cost_per_kwh * (1.0 + lambda_wear * (temp_diff ** 2))
         
-        degradation_penalty = energy_processed * dynamic_degradation_rate * WEAR_WEIGHT_MULTIPLIER
+        degradation_penalty = energy_processed * dynamic_degradation_rate * WEAR_WEIGHT
         
         # 4. Efficiency Bonus (encourage staying at mid-SoC)
         soc_penalty = -SOC_CENTERING_WEIGHT * ((self.soc - 0.5) ** 2)
@@ -376,6 +383,6 @@ class AdvancedSmartGridEnv(gym.Env):
                 f"Weather: {weather} | "
                 f"Reward: {self.cumulative_reward:8.2f}"
             )
-            print(status)
+            logger.info(status)
             return status
         return None

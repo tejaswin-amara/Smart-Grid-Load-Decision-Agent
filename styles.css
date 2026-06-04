@@ -1987,6 +1987,12 @@ body.high-contrast .access-btn.active {
     stroke-dasharray: 6, 6;
     stroke-dashoffset: 0;
     animation: particles-flow-move 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.flow-path.flow-active {
+    opacity: 1;
 }
 
 .flow-path.reverse {
