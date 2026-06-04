@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stochastic Smart Grid Load Decision Agent - GitHub Pages Demo</title>
+    <meta name="description" content="Interactive demonstration of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time smart grid energy arbitrage under stochastic price volatility. Built for academic capstone presentation.">
+    <meta property="og:title" content="Smart Grid Load Decision Agent — SAC RL Dashboard">
+    <meta property="og:description" content="Live interactive verification of a Soft Actor-Critic RL agent optimizing grid energy arbitrage under stochastic volatility.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tejaswin-amara.github.io/Smart-Grid-Load-Decision-Agent/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Smart Grid Load Decision Agent — SAC RL Dashboard">
+    <meta name="twitter:description" content="Interactive RL-powered smart grid energy arbitrage dashboard with real-time simulation and gamification.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <title>Stochastic Smart Grid Load Decision Agent - Portfolio & Dashboard</title>
     <!-- Google Fonts: Inter and Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,19 +24,20 @@
 <body>
     <div class="app-container">
         <!-- Sidebar Navigation & Control Panel -->
-        <aside class="sidebar">
+        <aside class="sidebar" role="complementary">
             <div class="sidebar-header">
                 <div class="logo-container">
-                    <span class="logo-icon">⚡</span>
+                    <span class="logo-icon" aria-hidden="true">⚡</span>
                     <h2 class="logo-text">SmartGrid</h2>
                 </div>
                 <p class="tagline">Stochastic Load Decision Agent</p>
-                <div class="agent-status-panel">
+                <div class="agent-status-panel" aria-live="polite">
                     <span class="status-indicator-dot"></span>
                     <span class="status-indicator-text">🤖 AGENT STATUS: ACTIVE</span>
                 </div>
             </div>
             
+            <!-- Academic Profile Panel -->
             <div class="sidebar-section">
                 <h3 class="section-title">Academic Profile</h3>
                 <div class="student-card">
@@ -54,94 +64,77 @@
                 </div>
             </div>
 
-            <div class="sidebar-section">
+            <!-- View explanation level mode -->
+            <div class="sidebar-section" id="sidebar-mode-panel">
                 <h3 class="section-title">Dashboard Mode</h3>
                 <div class="toggle-mode-container">
-                    <button class="mode-btn active" id="btn-mode-simple">🏡 Simple</button>
-                    <button class="mode-btn" id="btn-mode-academic">🎓 Academic</button>
+                    <button class="mode-btn active" id="btn-mode-simple" aria-label="Switch to Simple View Mode">🏡 Simple</button>
+                    <button class="mode-btn" id="btn-mode-academic" aria-label="Switch to Academic View Mode">🎓 Academic</button>
                 </div>
             </div>
 
+            <!-- Accessibility Settings Panel -->
             <div class="sidebar-section">
-                <h3 class="section-title">Control Mode</h3>
-                <div class="toggle-mode-container">
-                    <button class="mode-btn active" id="btn-control-auto">🤖 Auto AI</button>
-                    <button class="mode-btn" id="btn-control-manual">🎮 Play Game</button>
+                <h3 class="section-title">Accessibility Settings</h3>
+                <div class="accessibility-controls">
+                    <button class="access-btn" id="btn-text-decrease" title="Decrease Text Size" aria-label="Decrease Text Size">A-</button>
+                    <button class="access-btn active" id="btn-text-reset" title="Reset Text Size" aria-label="Reset Text Size">A</button>
+                    <button class="access-btn" id="btn-text-increase" title="Increase Text Size" aria-label="Increase Text Size">A+</button>
+                    <button class="access-btn" id="btn-contrast-toggle" title="Toggle High Contrast Mode" aria-label="Toggle High Contrast Mode">👁️ Contrast</button>
                 </div>
             </div>
 
-            <div class="sidebar-section" id="sidebar-presets-panel">
-                <h3 class="section-title">Scenario Presets</h3>
-                <div class="presets-grid">
-                    <button class="preset-btn active" id="preset-home">🏡 Home Battery</button>
-                    <button class="preset-btn" id="preset-storm">⛈️ Pricing Crisis</button>
-                    <button class="preset-btn" id="preset-solar">☀️ Solar Peak</button>
-                </div>
-            </div>
-
-            <div class="sidebar-section" id="sidebar-game-panel" style="display: none;">
-                <h3 class="section-title">🎮 Game Controls</h3>
-                
-                <div class="game-status-card">
-                    <div class="game-info">
-                        <span class="meta-label">Progress</span>
-                        <span class="meta-value" id="game-step-val">Hour 0/48</span>
-                    </div>
-                    <div class="game-info">
-                        <span class="meta-label">Grid Price</span>
-                        <span class="meta-value" id="game-price-val">$0.00/kWh</span>
-                    </div>
-                    <div class="game-info">
-                        <span class="meta-label">Solar Output</span>
-                        <span class="meta-value" id="game-solar-val">0.0 kW</span>
-                    </div>
-                    <div class="game-info">
-                        <span class="meta-label">Weather</span>
-                        <span class="meta-value" id="game-weather-val">☀️ SUNNY</span>
-                    </div>
-                </div>
-
-                <div class="game-actions-container">
-                    <button id="game-btn-charge" class="game-action-btn charge-btn">🟢 Charge (+20 kW)</button>
-                    <button id="game-btn-hold" class="game-action-btn hold-btn">💤 Standby (0 kW)</button>
-                    <button id="game-btn-discharge" class="game-action-btn discharge-btn">🔴 Discharge (-20 kW)</button>
-                </div>
-
-                <button id="game-btn-reset" class="premium-btn" style="background: linear-gradient(135deg, var(--color-red) 0%, var(--color-secondary) 100%); margin-top: 15px;">
-                    <span class="btn-text">🔄 Restart Game</span>
+            <!-- Tour Guide Panel -->
+            <div class="sidebar-section">
+                <button id="btn-start-tour" class="tour-btn-sidebar" aria-label="Launch Guided Walkthrough Tour">
+                    <span>💡 Interactive Tour Guide</span>
                 </button>
             </div>
 
-            <div class="sidebar-section" id="sidebar-config-panel">
-                <h3 class="section-title" id="sidebar-config-title">Grid Configuration</h3>
-                
-                <div class="control-group">
-                    <div class="control-header">
-                        <label for="battery-capacity" id="label-capacity-title">Battery Capacity</label>
-                        <span class="control-value" id="battery-capacity-val">100 kWh</span>
+            <!-- Dynamic Config / Presets depending on context -->
+            <div id="sidebar-context-controls">
+                <!-- Preset Options Panel (Visible in Simulation Tab) -->
+                <div class="sidebar-section" id="sidebar-presets-panel">
+                    <h3 class="section-title">Scenario Presets</h3>
+                    <div class="presets-grid">
+                        <button class="preset-btn active" id="preset-home">🏡 Home Battery</button>
+                        <button class="preset-btn" id="preset-storm">⛈️ Pricing Crisis</button>
+                        <button class="preset-btn" id="preset-solar">☀️ Solar Peak</button>
                     </div>
-                    <input type="range" id="battery-capacity" min="50" max="200" value="100" step="10" class="premium-slider">
                 </div>
 
-                <div class="control-group">
-                    <div class="control-header">
-                        <label for="max-power" id="label-maxpower-title">Max Power Output</label>
-                        <span class="control-value" id="max-power-val">25 kW</span>
+                <!-- Simulation Sliders Config Panel (Visible in Simulation Tab) -->
+                <div class="sidebar-section" id="sidebar-config-panel">
+                    <h3 class="section-title" id="sidebar-config-title">Grid Configuration</h3>
+                    
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="battery-capacity" id="label-capacity-title">Battery Capacity</label>
+                            <span class="control-value" id="battery-capacity-val">100 kWh</span>
+                        </div>
+                        <input type="range" id="battery-capacity" min="50" max="200" value="100" step="10" class="premium-slider">
                     </div>
-                    <input type="range" id="max-power" min="10" max="50" value="25" step="5" class="premium-slider">
-                </div>
 
-                <div class="control-group">
-                    <div class="control-header">
-                        <label for="price-volatility" id="label-volatility-title">AR(1) Price Volatility</label>
-                        <span class="control-value" id="price-volatility-val">0.03</span>
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="max-power" id="label-maxpower-title">Max Power Output</label>
+                            <span class="control-value" id="max-power-val">25 kW</span>
+                        </div>
+                        <input type="range" id="max-power" min="10" max="50" value="25" step="5" class="premium-slider">
                     </div>
-                    <input type="range" id="price-volatility" min="0.01" max="0.10" value="0.03" step="0.01" class="premium-slider">
-                </div>
 
-                <button id="run-simulation-btn" class="premium-btn">
-                    <span class="btn-text">🚀 Run 48-Hour Simulation</span>
-                </button>
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="price-volatility" id="label-volatility-title">AR(1) Price Volatility</label>
+                            <span class="control-value" id="price-volatility-val">0.03</span>
+                        </div>
+                        <input type="range" id="price-volatility" min="0.01" max="0.10" value="0.03" step="0.01" class="premium-slider">
+                    </div>
+
+                    <button id="run-simulation-btn" class="premium-btn" aria-label="Run 48-Hour Simulation">
+                        <span class="btn-text">🚀 Run 48-Hour Simulation</span>
+                    </button>
+                </div>
             </div>
             
             <div class="sidebar-footer">
@@ -151,7 +144,8 @@
         </aside>
 
         <!-- Main Dashboard Workspace -->
-        <main class="dashboard-main">
+        <main class="dashboard-main" role="main">
+            <!-- Header section -->
             <header class="dashboard-header">
                 <div class="header-text">
                     <h1>Stochastic Smart Grid Decision Dashboard</h1>
@@ -159,56 +153,8 @@
                 </div>
             </header>
 
-            <!-- Metrics Grid -->
-            <section class="metrics-grid">
-                <div class="metric-card" id="metric-profit-card">
-                    <div class="metric-icon profit">💰</div>
-                    <div class="metric-content">
-                        <span class="metric-label" id="label-profit">Total Energy Arbitrage Profit</span>
-                        <h3 class="metric-value" id="total-profit-val">$0.00</h3>
-                        <span class="metric-delta positive" id="profit-delta-val">$0.00 / day</span>
-                    </div>
-                </div>
-
-                <div class="metric-card" id="metric-wear-card">
-                    <div class="metric-icon wear">⚙️</div>
-                    <div class="metric-content">
-                        <span class="metric-label" id="label-wear">Battery Wear & Degradation Cost</span>
-                        <h3 class="metric-value" id="total-wear-val">$0.00</h3>
-                        <span class="metric-delta negative" id="wear-delta-val">-$0.00 / day</span>
-                    </div>
-                </div>
-
-                <div class="metric-card" id="metric-reward-card">
-                    <div class="metric-icon reward">⭐</div>
-                    <div class="metric-content">
-                        <span class="metric-label" id="label-reward">Net Policy Value (Reward)</span>
-                        <h3 class="metric-value" id="net-reward-val">0.00</h3>
-                        <span class="metric-delta neutral" id="reward-delta-val">Robust SAC Policy</span>
-                    </div>
-                </div>
-
-                <div class="metric-card" id="metric-volatility-card">
-                    <div class="metric-icon wear" style="border-color: rgba(255, 159, 28, 0.25); background: rgba(255, 159, 28, 0.08);">📉</div>
-                    <div class="metric-content">
-                        <span class="metric-label" id="label-volatility">Volatility Risk Index</span>
-                        <h3 class="metric-value" id="volatility-val">0.0000</h3>
-                        <span class="metric-delta neutral" id="volatility-delta-val">Hourly Deviation</span>
-                    </div>
-                </div>
-
-                <div class="metric-card" id="metric-sharpe-card">
-                    <div class="metric-icon profit" style="border-color: rgba(0, 245, 212, 0.25); background: rgba(0, 245, 212, 0.08);">⚖️</div>
-                    <div class="metric-content">
-                        <span class="metric-label" id="label-sharpe">Risk-Adjusted Arbitrage (Sharpe)</span>
-                        <h3 class="metric-value" id="sharpe-val">0.00%</h3>
-                        <span class="metric-delta positive" id="sharpe-delta-val">Profit per Risk Unit</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Interactive Live Grid Schematic -->
-            <section class="schematic-section">
+            <!-- Interactive Live Grid Schematic (Stays as a shared interactive banner) -->
+            <section class="schematic-section" aria-label="Smart Grid Interactive Flow Schematic">
                 <div class="schematic-panel">
                     <h2>🔌 Live Microgrid Power Flow Schematic</h2>
                     <div class="schematic-container">
@@ -242,8 +188,8 @@
                             
                             <!-- Solar Node (X:15, Y:35, W:125, H:95) -->
                             <foreignObject x="15" y="32" width="125" height="100">
-                                <div class="schematic-node solar-node" id="node-solar">
-                                    <span class="node-icon">☀️</span>
+                                <div class="schematic-node solar-node" id="node-solar" role="button" tabindex="0" title="Click to view profit connection">
+                                    <span class="node-icon" aria-hidden="true">☀️</span>
                                     <span class="node-label">Solar PV Array</span>
                                     <span class="node-value" id="schematic-solar-val">0.0 kW</span>
                                 </div>
@@ -251,7 +197,7 @@
 
                             <!-- Battery Node (X:235, Y:25, W:130, H:110) -->
                             <foreignObject x="235" y="22" width="130" height="116">
-                                <div class="schematic-node battery-node" id="node-battery">
+                                <div class="schematic-node battery-node" id="node-battery" role="button" tabindex="0" title="Click to view wear connection">
                                     <div class="battery-wrapper">
                                         <div class="battery-body">
                                             <div class="battery-level" id="visual-battery-level" style="width: 50%;"></div>
@@ -266,8 +212,8 @@
 
                             <!-- Grid Node (X:460, Y:35, W:125, H:95) -->
                             <foreignObject x="460" y="32" width="125" height="100">
-                                <div class="schematic-node grid-node" id="node-grid">
-                                    <span class="node-icon">⚡</span>
+                                <div class="schematic-node grid-node" id="node-grid" role="button" tabindex="0" title="Click to view risk metrics">
+                                    <span class="node-icon" aria-hidden="true">⚡</span>
                                     <span class="node-label">Utility Grid</span>
                                     <span class="node-value" id="schematic-grid-val">Active</span>
                                 </div>
@@ -277,81 +223,388 @@
                 </div>
             </section>
 
-            <!-- Charts Section -->
-            <section class="charts-section">
-                <div class="chart-panel">
-                    <div id="market-chart" class="plotly-chart"></div>
-                </div>
+            <!-- Navigation Tabs Bar -->
+            <nav class="tabs-nav-bar" role="tablist">
+                <button class="tab-link active" id="tab-btn-sim" role="tab" aria-selected="true" aria-controls="panel-simulation">📊 Real-Time Simulation</button>
+                <button class="tab-link" id="tab-btn-game" role="tab" aria-selected="false" aria-controls="panel-game">🎮 Interactive Grid Game</button>
+                <button class="tab-link" id="tab-btn-math" role="tab" aria-selected="false" aria-controls="panel-math">🎓 Theory & Mathematics</button>
+                <button class="tab-link" id="tab-btn-docs" role="tab" aria-selected="false" aria-controls="panel-docs">📖 System Guide</button>
+            </nav>
+
+            <!-- Dynamic Tab Content Sections -->
+            <div class="tab-content-container">
                 
-                <div class="chart-panel">
-                    <div id="soc-chart" class="plotly-chart"></div>
-                </div>
-            </section>
+                <!-- Tab Panel 1: Simulation -->
+                <section class="tab-panel active" id="panel-simulation" role="tabpanel" aria-labelledby="tab-btn-sim">
+                    <!-- Metrics Grid -->
+                    <div class="metrics-grid">
+                        <div class="metric-card" id="metric-profit-card" tabindex="0">
+                            <div class="metric-icon profit" aria-hidden="true">💰</div>
+                            <div class="metric-content">
+                                <span class="metric-label" id="label-profit">Total Energy Arbitrage Profit</span>
+                                <h3 class="metric-value" id="total-profit-val">$0.00</h3>
+                                <span class="metric-delta positive" id="profit-delta-val">$0.00 / day</span>
+                            </div>
+                        </div>
 
-            <!-- Detailed Hourly Logs Expander -->
-            <section class="logs-section">
-                <details class="premium-details">
-                    <summary class="premium-summary">📝 View Detailed Hourly Logs</summary>
-                    <div class="logs-table-container">
-                        <table class="premium-table" id="hourly-logs-table">
-                            <thead>
-                                <tr>
-                                    <th>Hour</th>
-                                    <th>Price ($/MWh)</th>
-                                    <th>Solar Gen (%)</th>
-                                    <th>Dispatch Action (kW)</th>
-                                    <th>State of Charge (%)</th>
-                                    <th>Step Profit ($)</th>
-                                    <th>Step Wear ($)</th>
-                                    <th>Step Reward</th>
-                                    <th>Agent Decision Explainer</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Loaded dynamically in script.js -->
-                            </tbody>
-                        </table>
+                        <div class="metric-card" id="metric-wear-card" tabindex="0">
+                            <div class="metric-icon wear" aria-hidden="true">⚙️</div>
+                            <div class="metric-content">
+                                <span class="metric-label" id="label-wear">Battery Wear & Degradation Cost</span>
+                                <h3 class="metric-value" id="total-wear-val">$0.00</h3>
+                                <span class="metric-delta negative" id="wear-delta-val">-$0.00 / day</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card" id="metric-reward-card" tabindex="0">
+                            <div class="metric-icon reward" aria-hidden="true">⭐</div>
+                            <div class="metric-content">
+                                <span class="metric-label" id="label-reward">Net Policy Value (Reward)</span>
+                                <h3 class="metric-value" id="net-reward-val">0.00</h3>
+                                <span class="metric-delta neutral" id="reward-delta-val">Robust SAC Policy</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card" id="metric-volatility-card" tabindex="0">
+                            <div class="metric-icon wear" style="border-color: rgba(255, 159, 28, 0.25); background: rgba(255, 159, 28, 0.08);" aria-hidden="true">📉</div>
+                            <div class="metric-content">
+                                <span class="metric-label" id="label-volatility">Volatility Risk Index</span>
+                                <h3 class="metric-value" id="volatility-val">0.0000</h3>
+                                <span class="metric-delta neutral" id="volatility-delta-val">Hourly Deviation</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card" id="metric-sharpe-card" tabindex="0">
+                            <div class="metric-icon profit" style="border-color: rgba(0, 245, 212, 0.25); background: rgba(0, 245, 212, 0.08);" aria-hidden="true">⚖️</div>
+                            <div class="metric-content">
+                                <span class="metric-label" id="label-sharpe">Risk-Adjusted Arbitrage (Sharpe)</span>
+                                <h3 class="metric-value" id="sharpe-val">0.00%</h3>
+                                <span class="metric-delta positive" id="sharpe-delta-val">Profit per Risk Unit</span>
+                            </div>
+                        </div>
                     </div>
-                </details>
-            </section>
 
-            <!-- Academic Documentation Section -->
-            <section class="academic-documentation">
-                <div class="doc-panel">
-                    <h2>🎓 Academic Explanation & Foundational Math</h2>
+                    <!-- Charts Grid -->
+                    <div class="charts-section">
+                        <div class="chart-panel">
+                            <div id="market-chart" class="plotly-chart">
+                                <div class="chart-skeleton" id="skeleton-market">
+                                    <div class="skeleton-title"></div>
+                                    <div class="skeleton-bars">
+                                        <div class="skeleton-bar" style="height: 60%;"></div>
+                                        <div class="skeleton-bar" style="height: 80%;"></div>
+                                        <div class="skeleton-bar" style="height: 45%;"></div>
+                                        <div class="skeleton-bar" style="height: 90%;"></div>
+                                        <div class="skeleton-bar" style="height: 55%;"></div>
+                                        <div class="skeleton-bar" style="height: 70%;"></div>
+                                        <div class="skeleton-bar" style="height: 35%;"></div>
+                                        <div class="skeleton-bar" style="height: 65%;"></div>
+                                    </div>
+                                    <div class="skeleton-axis"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-panel">
+                            <div id="soc-chart" class="plotly-chart">
+                                <div class="chart-skeleton" id="skeleton-soc">
+                                    <div class="skeleton-title"></div>
+                                    <div class="skeleton-bars">
+                                        <div class="skeleton-bar" style="height: 50%;"></div>
+                                        <div class="skeleton-bar" style="height: 65%;"></div>
+                                        <div class="skeleton-bar" style="height: 75%;"></div>
+                                        <div class="skeleton-bar" style="height: 60%;"></div>
+                                        <div class="skeleton-bar" style="height: 85%;"></div>
+                                        <div class="skeleton-bar" style="height: 40%;"></div>
+                                        <div class="skeleton-bar" style="height: 70%;"></div>
+                                        <div class="skeleton-bar" style="height: 55%;"></div>
+                                    </div>
+                                    <div class="skeleton-axis"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Hourly Logs Expander -->
+                    <div class="logs-section">
+                        <details class="premium-details">
+                            <summary class="premium-summary">📝 View Detailed Hourly Simulation Logs</summary>
+                            <div class="logs-table-container">
+                                <table class="premium-table" id="hourly-logs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Hour</th>
+                                            <th>Price ($/kWh)</th>
+                                            <th>Solar Gen (kW)</th>
+                                            <th>Dispatch Action (kW)</th>
+                                            <th>State of Charge (%)</th>
+                                            <th>Step Profit ($)</th>
+                                            <th>Step Wear ($)</th>
+                                            <th>Step Reward</th>
+                                            <th>Agent Decision Explainer</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Loaded dynamically in script.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                </section>
+
+                <!-- Tab Panel 2: Interactive Game -->
+                <section class="tab-panel" id="panel-game" role="tabpanel" aria-labelledby="tab-btn-game" style="display: none;">
                     
-                    <div class="doc-paragraphs">
-                        <div class="doc-block">
-                            <h3>1. The Stochastic Markov Decision Process (MDP)</h3>
-                            <p>This smart grid optimization task is modeled as a continuous-state, continuous-action <strong>stochastic Markov Decision Process (MDP)</strong> defined by the five-tuple \((\mathcal{S}, \mathcal{A}, P, R, \gamma)\). The continuous state space \(\mathcal{S}\) tracks four dimensions: the battery normalized State of Charge (SoC), electricity pricing, solar irradiance generation, and the time of day. Crucially, the transition dynamics function \(P(s' | s, a)\) incorporates environmental volatility through first-order <strong>Autoregressive (AR(1)) stochastic processes</strong> mapping both the pricing schedule and local photovoltaic generation:</p>
-                            <div class="math-block">
-                                \[p_{t+1} = \mu_p + \phi_p(p_t - \mu_p) + \epsilon^p_t, \quad \epsilon^p_t \sim \mathcal{N}(0, \sigma_p^2)\]
-                                \[g_{t+1} = \mu_g + \phi_g(g_t - \mu_g) + \epsilon^g_t, \quad \epsilon^g_t \sim \mathcal{N}(0, \sigma_g^2)\]
-                            </div>
-                            <p>Here, the stochastic price and solar signals are updated using stationary coefficients \(\phi_p = 0.8\) and \(\phi_g = 0.7\), combined with independent normal error perturbations \(\epsilon^p\) and \(\epsilon^g\) that prevent unrealistic high-frequency variance while retaining daily periodicity constraints.</p>
+                    <!-- Game Live Dashboard Panel -->
+                    <div class="game-dashboard-header">
+                        <div class="game-info-badge">
+                            <span class="game-badge-label">⚡ Progress</span>
+                            <span class="game-badge-value" id="game-step-val">Hour 0/48</span>
                         </div>
-
-                        <div class="doc-block">
-                            <h3>2. Soft Actor-Critic (SAC) Maximum Entropy Objective</h3>
-                            <p>To operate effectively in highly volatile and unpredictable pricing landscapes, the decision agent is trained using the off-policy <strong>Soft Actor-Critic (SAC)</strong> framework. SAC expands the traditional expected return formulation of reinforcement learning by maximizing the policy's structural entropy alongside standard long-term reward. The maximum entropy objective function \(J(\pi)\) is mathematically stated as:</p>
-                            <div class="math-block">
-                                \[J(\pi) = \sum_{t=0}^{\infty} \mathbb{E}_{(s_t, a_t) \sim \rho_\pi} \left[ R(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot | s_t)) \right]\]
-                            </div>
-                            <p>where \(\mathcal{H}(\pi(\cdot | s_t)) = -\int_{A} \pi(a|s_t) \log \pi(a|s_t) da\) is the operational policy entropy, and \(\alpha\) is the dynamic temperature parameter balancing exploration drive against standard optimization. By incentivizing the neural network to explore highly diverse path sequences, entropy regularization prevents premature collapse of the continuous control actor into sub-optimal local basins (such as simple, short-sighted greedy trading schemes).</p>
+                        <div class="game-info-badge">
+                            <span class="game-badge-label">💲 Grid Price</span>
+                            <span class="game-badge-value" id="game-price-val">$0.00/kWh</span>
                         </div>
-
-                        <div class="doc-block">
-                            <h3>3. Physics Boundary Constraints & Reward Shaped Calculus</h3>
-                            <p>To enforce grid stability, system safety, and longevity, the reward framework employs multi-objective reward shaping. The aggregate reward \(R(s,a)\) is defined as:</p>
-                            <div class="math-block">
-                                \[R(s, a) = R_{\text{arbitrage}} + R_{\text{green}} - R_{\text{wear}}\]
-                            </div>
-                            <p>Where energy arbitrage \(R_{\text{arbitrage}} = p_t \times (D_t - C_t) \times \eta\) optimizes direct grid cost-efficiency, utilizing local charging efficiency \(\eta\) that degrades quadratically as SoC approaches full capacity: \(\eta_{\text{charge}} = \eta_{\text{base}} \times (1 - 0.2 \cdot SoC^2)\). Degradation penalty \(R_{\text{wear}}\) implements dynamic Depth-of-Discharge (DoD) wear tracking proportional to absolute power flow, incentivizing battery longevity. This shaped manifold maps a highly constrained safe operational frontier directly within the continuous neural network optimization landscape.</p>
+                        <div class="game-info-badge">
+                            <span class="game-badge-label">☀️ Solar Gen</span>
+                            <span class="game-badge-value" id="game-solar-val">0.0 kW</span>
+                        </div>
+                        <div class="game-info-badge">
+                            <span class="game-badge-label">⛅ Weather</span>
+                            <span class="game-badge-value" id="game-weather-val">☀️ SUNNY</span>
                         </div>
                     </div>
-                </div>
-            </section>
+
+                    <!-- Interactive Play Controls -->
+                    <div class="game-play-panel">
+                        <h3 class="game-subtitle">🎮 Manual Microgrid Dispatch Controls</h3>
+                        <p class="game-help-text">Click the buttons below or press keyboard shortcuts <strong>[1 / C]</strong> to Charge, <strong>[2 / S]</strong> for Standby, and <strong>[3 / D]</strong> to Discharge the battery. Try to beat the Soft Actor-Critic (SAC) AI Agent's total savings score!</p>
+                        
+                        <div class="game-actions-row">
+                            <button id="game-btn-charge" class="game-action-btn charge-btn">🟢 Charge (+20 kW) <kbd class="kbd-hint">[1]</kbd></button>
+                            <button id="game-btn-hold" class="game-action-btn hold-btn">💤 Standby (0 kW) <kbd class="kbd-hint">[2]</kbd></button>
+                            <button id="game-btn-discharge" class="game-action-btn discharge-btn">🔴 Discharge (-20 kW) <kbd class="kbd-hint">[3]</kbd></button>
+                            <button id="game-btn-reset" class="game-reset-btn">🔄 Restart Game</button>
+                        </div>
+                    </div>
+
+                    <!-- Side-by-Side Scorecards -->
+                    <div class="game-scorecards-grid">
+                        <!-- Player Card -->
+                        <div class="game-card player-card">
+                            <div class="card-header player">
+                                <h3>👤 Your Performance</h3>
+                                <span class="badge player">Player</span>
+                            </div>
+                            <div class="game-card-metric">
+                                <span class="metric-label">Electricity Bill Savings</span>
+                                <span class="metric-value player" id="game-player-profit">$0.00</span>
+                            </div>
+                            <div class="game-card-metric">
+                                <span class="metric-label">Battery Degradation Cost</span>
+                                <span class="metric-value negative" id="game-player-wear">$0.00</span>
+                            </div>
+                            <div class="game-card-metric">
+                                <span class="metric-label">Net Efficiency Score (Reward)</span>
+                                <span class="metric-value" id="game-player-reward">0.00</span>
+                            </div>
+                            <div class="game-card-submetrics">
+                                <div class="submetric">
+                                    <span class="submetric-label">Volatility Risk</span>
+                                    <span id="game-player-volatility">0.0000</span>
+                                </div>
+                                <div class="submetric">
+                                    <span class="submetric-label">Sharpe Ratio</span>
+                                    <span id="game-player-sharpe">0.00%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Card -->
+                        <div class="game-card ai-card">
+                            <div class="card-header ai">
+                                <h3>🤖 SAC AI Agent</h3>
+                                <span class="badge ai">Trained RL Agent</span>
+                            </div>
+                            <div class="game-card-metric">
+                                <span class="metric-label">Electricity Bill Savings</span>
+                                <span class="metric-value ai" id="game-ai-profit">$0.00</span>
+                            </div>
+                            <div class="game-card-metric">
+                                <span class="metric-label">Battery Degradation Cost</span>
+                                <span class="metric-value negative" id="game-ai-wear">$0.00</span>
+                            </div>
+                            <div class="game-card-metric">
+                                <span class="metric-label">Net Efficiency Score (Reward)</span>
+                                <span class="metric-value" id="game-ai-reward">0.00</span>
+                            </div>
+                            <div class="game-card-submetrics">
+                                <div class="submetric">
+                                    <span class="submetric-label">Volatility Risk</span>
+                                    <span id="game-ai-volatility">0.0000</span>
+                                </div>
+                                <div class="submetric">
+                                    <span class="submetric-label">Sharpe Ratio</span>
+                                    <span id="game-ai-sharpe">0.00%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overlay Trajectory Comparison Charts -->
+                    <div class="charts-section">
+                        <div class="chart-panel">
+                            <div id="game-soc-comparison" class="plotly-chart"></div>
+                        </div>
+                        <div class="chart-panel">
+                            <div id="game-action-comparison" class="plotly-chart"></div>
+                        </div>
+                    </div>
+
+                    <!-- Game Step Logs Table -->
+                    <div class="logs-section">
+                        <h3 class="game-subtitle">📝 Game Hour History Logs</h3>
+                        <div class="logs-table-container">
+                            <table class="premium-table" id="game-logs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hour</th>
+                                        <th>Price ($/kWh)</th>
+                                        <th>Solar Gen (kW)</th>
+                                        <th>Your Action (kW)</th>
+                                        <th>Your SoC (%)</th>
+                                        <th>AI Action (kW)</th>
+                                        <th>AI SoC (%)</th>
+                                        <th>Your Profit ($)</th>
+                                        <th>AI Profit ($)</th>
+                                        <th>Weather & State</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Loaded dynamically during gameplay -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab Panel 3: Math -->
+                <section class="tab-panel" id="panel-math" role="tabpanel" aria-labelledby="tab-btn-math" style="display: none;">
+                    <div class="academic-documentation">
+                        <div class="doc-panel">
+                            <h2>🎓 Academic Explanation & Foundational Math</h2>
+                            
+                            <div class="doc-paragraphs">
+                                <div class="doc-block">
+                                    <h3>1. The Stochastic Markov Decision Process (MDP)</h3>
+                                    <p>This smart grid optimization task is modeled as a continuous-state, continuous-action <strong>stochastic Markov Decision Process (MDP)</strong> defined by the five-tuple \((\mathcal{S}, \mathcal{A}, P, R, \gamma)\). The continuous state space \(\mathcal{S}\) tracks four dimensions: the battery normalized State of Charge (SoC), electricity pricing, solar irradiance generation, and the time of day. Crucially, the transition dynamics function \(P(s' | s, a)\) incorporates environmental volatility through first-order <strong>Autoregressive (AR(1)) stochastic processes</strong> mapping both the pricing schedule and local photovoltaic generation:</p>
+                                    <div class="math-block">
+                                        \[p_{t+1} = \mu_p + \phi_p(p_t - \mu_p) + \epsilon^p_t, \quad \epsilon^p_t \sim \mathcal{N}(0, \sigma_p^2)\]
+                                        \[g_{t+1} = \mu_g + \phi_g(g_t - \mu_g) + \epsilon^g_t, \quad \epsilon^g_t \sim \mathcal{N}(0, \sigma_g^2)\]
+                                    </div>
+                                    <p>Here, the stochastic price and solar signals are updated using stationary coefficients \(\phi_p = 0.8\) and \(\phi_g = 0.7\), combined with independent normal error perturbations \(\epsilon^p\) and \(\epsilon^g\) that prevent unrealistic high-frequency variance while retaining daily periodicity constraints.</p>
+                                </div>
+        
+                                <div class="doc-block">
+                                    <h3>2. Soft Actor-Critic (SAC) Maximum Entropy Objective</h3>
+                                    <p>To operate effectively in highly volatile and unpredictable pricing landscapes, the decision agent is trained using the off-policy <strong>Soft Actor-Critic (SAC)</strong> framework. SAC expands the traditional expected return formulation of reinforcement learning by maximizing the policy's structural entropy alongside standard long-term reward. The maximum entropy objective function \(J(\pi)\) is mathematically stated as:</p>
+                                    <div class="math-block">
+                                        \[J(\pi) = \sum_{t=0}^{\infty} \mathbb{E}_{(s_t, a_t) \sim \rho_\pi} \left[ R(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot | s_t)) \right]\]
+                                    </div>
+                                    <p>where \(\mathcal{H}(\pi(\cdot | s_t)) = -\int_{A} \pi(a|s_t) \log \pi(a|s_t) da\) is the operational policy entropy, and \(\alpha\) is the dynamic temperature parameter balancing exploration drive against standard optimization. By incentivizing the neural network to explore highly diverse path sequences, entropy regularization prevents premature collapse of the continuous control actor into sub-optimal local basins (such as simple, short-sighted greedy trading schemes).</p>
+                                </div>
+        
+                                <div class="doc-block">
+                                    <h3>3. Physics Boundary Constraints & Shaping Calculus</h3>
+                                    <p>To enforce grid stability, system safety, and longevity, the reward framework employs multi-objective reward shaping. The aggregate reward \(R(s,a)\) is defined as:</p>
+                                    <div class="math-block">
+                                        \[R_t = - \left( \frac{P_t \cdot \rho_t \cdot \Delta t}{1000} \right) w_{\text{arb}} + \max(0, -P_t \cdot S_t \cdot w_{\text{green}}) - |P_t| \cdot \Delta t \cdot C_{\text{deg}} \left( 1 + \lambda (T_{\text{cell}} - T_{\text{nom}})^2 \right) w_{\text{wear}} - w_{\text{soc}} (SoC_t - 0.5)^2\]
+                                    </div>
+                                    <p>Where energy arbitrage \(R_{\text{arbitrage}}\) optimizes direct grid cost-efficiency, utilizing local charging efficiency \(\eta\) that degrades quadratically as SoC approaches full capacity. Degradation penalty \(R_{\text{wear}}\) implements dynamic Depth-of-Discharge (DoD) wear tracking proportional to absolute power flow and battery cell thermal heating, incentivizing battery longevity.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab Panel 4: Docs -->
+                <section class="tab-panel" id="panel-docs" role="tabpanel" aria-labelledby="tab-btn-docs" style="display: none;">
+                    <div class="doc-panel docs-content">
+                        <h2>📖 Smart Grid Load Agent System Guide</h2>
+                        
+                        <div class="docs-section-block">
+                            <h3>1. System Architecture</h3>
+                            <p>The project is structured with a decoupled reinforcement learning core and an interactive frontend simulation engine. It enables rapid prototyping of physical environment configurations and immediate validation of trained policy performance.</p>
+                            
+                            <div class="docs-layout-grid">
+                                <div class="docs-card">
+                                    <h4>📁 environments.py</h4>
+                                    <p>Implements the production-grade stochastic microgrid Gymnasium environment. Manages AR(1) price/solar transitions, thermal dynamics, and reward shaping.</p>
+                                </div>
+                                <div class="docs-card">
+                                    <h4>📁 train.py</h4>
+                                    <p>Orchestrates model training using Stable-Baselines3 Soft Actor-Critic (SAC). Fits VecNormalize checkpoints and exports model weights.</p>
+                                </div>
+                                <div class="docs-card">
+                                    <h4>📁 app.py / index.html</h4>
+                                    <p>Interactive interfaces. <code>app.py</code> runs via python Streamlit server, and <code>index.html</code> executes as a client-side ES6 browser simulation.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="docs-section-block">
+                            <h3>2. Quick Start & Replication Guide</h3>
+                            <p>Follow these steps to replicate the training loop and verify the policy code locally:</p>
+                            
+                            <div class="code-block-wrapper">
+                                <pre><code># 1. Clone the project repository
+git clone https://github.com/tejaswin-amara/Smart-Grid-Load-Decision-Agent.git
+cd Smart-Grid-Load-Decision-Agent
+
+# 2. Install dependencies (Requires Python 3.9+)
+pip install -r requirements.txt
+
+# 3. Train the SAC RL Agent
+python train.py
+
+# 4. Run the automated testing suite
+python -m pytest tests/ -v</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="docs-section-block">
+                            <h3>3. Testing Framework</h3>
+                            <p>The codebase is covered by 24 unit and regression tests mapping physics boundaries, episode terminations, seed reproducibility, and policy boundaries:</p>
+                            <ul>
+                                <li><code>tests/test_env.py</code>: Validates Gymnasium constraints, seed determinism, and reward shaping components.</li>
+                                <li><code>tests/test_policy.py</code>: Evaluates policy responses under peak grid prices and abundant solar surplus.</li>
+                                <li><code>tests/test_simulation.py</code>: Tests Markov Chain weather state shifts and physical step integrations.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
         </main>
+    </div>
+
+    <!-- Guided Onboarding Tour Dialog Overlay -->
+    <div id="tour-overlay" class="tour-overlay-container" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+        <div class="tour-card">
+            <div class="tour-header">
+                <span class="tour-step-badge" id="tour-badge">Step 1 of 5</span>
+                <button class="tour-close-btn" id="tour-close" aria-label="Close Tour">&times;</button>
+            </div>
+            <div class="tour-body">
+                <h4 id="tour-title">Smart Grid Decision Tour</h4>
+                <p id="tour-description">Welcome! Let's walk through how to use this microgrid portfolio dashboard.</p>
+            </div>
+            <div class="tour-footer">
+                <button class="tour-btn secondary-btn" id="tour-prev">Previous</button>
+                <button class="tour-btn primary-btn" id="tour-next">Next &rarr;</button>
+            </div>
+        </div>
     </div>
 
     <!-- MathJax script for LaTeX math equations in browser -->

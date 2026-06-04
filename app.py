@@ -19,6 +19,7 @@ import os
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import pandas as pd
 
 try:
     from stable_baselines3 import SAC
@@ -168,7 +169,9 @@ def run_evaluation_episode(
     }
 
 
-def generate_game_sequences(capacity, power, volatility):
+def generate_game_sequences(
+    capacity: float, power: float, volatility: float
+) -> Tuple[list, list, list]:
     """Generates 48 stochastic steps for pricing, solar and weather (Box-Muller & Markov)."""
     base_price_profile = []
     base_solar_profile = []
@@ -236,7 +239,10 @@ def generate_game_sequences(capacity, power, volatility):
     return price_seq, solar_seq, weather_seq
 
 
-def calculate_ai_response(price_seq, solar_seq, weather_seq, capacity, power):
+def calculate_ai_response(
+    price_seq: list, solar_seq: list, weather_seq: list,
+    capacity: float, power: float
+) -> Tuple[float, float, float, Dict[str, list]]:
     """Precomputes Heuristic SAC Agent trajectory for the game sequences."""
     soc_kwh = capacity / 2.0
     cell_temp = 25.0
@@ -735,7 +741,7 @@ def main():
         
         # Translation dict based on Mode selection
         labels = {
-            'desc': "Simulate how an AI battery agent automatically saves you money on electricity bills by storing cheap solar energy and avoiding peak pricing surges.",
+            'desc': "Simulate how an AI battery agent automatically saves you money on electricity bills by storing cheap solar energy and avoiding peak pricing surges." if is_simple else "Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.",
             'profit': "Total Electricity Bill Savings" if is_simple else "Total Energy Arbitrage Profit",
             'wear': "Battery Lifespan Wear Cost" if is_simple else "Battery Wear & Degradation Cost",
             'reward': "AI Agent Efficiency Score" if is_simple else "Net Policy Value (Reward)",
@@ -745,17 +751,6 @@ def main():
             'capacity': "Battery Energy Storage Capacity" if is_simple else "Battery Capacity (kWh)",
             'max_power': "Charging / Discharging Speed" if is_simple else "Max Power Output (kW)",
             'volatility_slider': "Utility Price Volatility" if is_simple else "AR(1) Price Volatility"
-        } if is_simple else {
-            'desc': "Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.",
-            'profit': "Total Energy Arbitrage Profit",
-            'wear': "Battery Wear & Degradation Cost",
-            'reward': "Net Policy Value (Reward)",
-            'volatility': "Volatility Risk Index",
-            'sharpe': "Risk-Adjusted Arbitrage (Sharpe)",
-            'config_title': "Grid Configuration",
-            'capacity': "Battery Capacity (kWh)",
-            'max_power': "Max Power Output (kW)",
-            'volatility_slider': "AR(1) Price Volatility"
         }
         
         st.markdown(f"*{labels['desc']}*")
@@ -929,7 +924,6 @@ def main():
         
         # Collapsible Logs expander card
         with st.expander("📝 View Detailed Hourly Logs"):
-            import pandas as pd
             log_df = pd.DataFrame({
                 "Hour": [f"{t:.2f}h" for t in results['trajectory']['time_hours']],
                 "Price ($/MWh)": [f"${p*1000:.2f}" for p in results['trajectory']['price']],

@@ -30,18 +30,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (nodeSolar) {
         nodeSolar.addEventListener('click', () => {
-            flashCard('metric-profit-card');
+            if (!isManualMode) flashCard('metric-profit-card');
+            else flashCard('game-player-profit');
         });
     }
     if (nodeBattery) {
         nodeBattery.addEventListener('click', () => {
-            flashCard('metric-wear-card');
+            if (!isManualMode) flashCard('metric-wear-card');
+            else flashCard('game-player-wear');
         });
     }
     if (nodeGrid) {
         nodeGrid.addEventListener('click', () => {
-            flashCard('metric-volatility-card');
-            flashCard('metric-sharpe-card');
+            if (!isManualMode) {
+                flashCard('metric-volatility-card');
+                flashCard('metric-sharpe-card');
+            } else {
+                flashCard('game-player-volatility');
+                flashCard('game-player-sharpe');
+            }
         });
     }
 
@@ -68,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const presetStorm = document.getElementById('preset-storm');
     const presetSolar = document.getElementById('preset-solar');
     
-    // KPI Cards Elements
+    // KPI Cards Elements (Tab 1 Simulation)
     const elTotalProfit = document.getElementById('total-profit-val');
     const elProfitDelta = document.getElementById('profit-delta-val');
     const elTotalWear = document.getElementById('total-wear-val');
@@ -85,12 +92,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const pathBatGrid = document.getElementById('flow-bat-grid');
 
     // -------------------------------------------------------------
-    // PARAMETERS & SYNC WITH UI
+    // GLOBAL STATE VARIABLES
     // -------------------------------------------------------------
     let batteryCapacity = parseFloat(sliderCapacity.value);
     let maxPower = parseFloat(sliderMaxPower.value);
     let priceVolatility = parseFloat(sliderVolatility.value);
     let isSimpleMode = true; // Default to Simple Mode for average user
+    let isManualMode = false; // Default to Simulation Mode (Auto AI)
+
+    // Game Mode Trajectory Stores
+    let gameStep = 0;
+    let gameSocKwh = 50.0;
+    let gameCellTemp = 25.0;
+    
+    let gamePriceSequence = [];
+    let gameSolarSequence = [];
+    let gameWeatherSequence = [];
+    
+    let gameTotalProfit = 0.0;
+    let gameTotalWear = 0.0;
+    let gameCumulativeReward = 0.0;
+    
+    let gameHistory = {
+        hours: [],
+        prices: [],
+        solarGens: [],
+        actions: [],
+        socTrajectory: [],
+        stepRewards: [],
+        profits: [],
+        wears: [],
+        explainers: [],
+        rawExplainers: []
+    };
+    
+    // AI Agent Game calculations
+    let aiTotalProfit = 0.0;
+    let aiTotalWear = 0.0;
+    let aiCumulativeReward = 0.0;
+    let aiHistory = {
+        socTrajectory: [],
+        actions: [],
+        profits: [],
+        wears: [],
+        stepRewards: []
+    };
 
     const LABELS = {
         academic: {
@@ -122,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateDashboardLabels() {
         const mode = isSimpleMode ? 'simple' : 'academic';
         
-        document.getElementById('header-desc').textContent = LABELS[mode].desc;
+        document.getElementById('header-desc').innerHTML = LABELS[mode].desc;
         document.getElementById('label-profit').textContent = LABELS[mode].profit;
         document.getElementById('label-wear').textContent = LABELS[mode].wear;
         document.getElementById('label-reward').textContent = LABELS[mode].reward;
@@ -139,21 +185,21 @@ document.addEventListener('DOMContentLoaded', () => {
         batteryCapacity = parseFloat(e.target.value);
         sliderCapacityVal.textContent = `${batteryCapacity} kWh`;
         [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
-        runStochasticSimulation();
+        if (!isManualMode) runStochasticSimulation();
     });
 
     sliderMaxPower.addEventListener('input', (e) => {
         maxPower = parseFloat(e.target.value);
         sliderMaxPowerVal.textContent = `${maxPower} kW`;
         [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
-        runStochasticSimulation();
+        if (!isManualMode) runStochasticSimulation();
     });
 
     sliderVolatility.addEventListener('input', (e) => {
         priceVolatility = parseFloat(e.target.value);
         sliderVolatilityVal.textContent = priceVolatility.toFixed(2);
         [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
-        runStochasticSimulation();
+        if (!isManualMode) runStochasticSimulation();
     });
 
     btnRunSimulation.addEventListener('click', () => {
@@ -198,72 +244,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     presetStorm.addEventListener('click', () => {
-        setPreset(150, 45, 0.08, presetStorm);
+        setPreset(120, 45, 0.08, presetStorm);
     });
     
     presetSolar.addEventListener('click', () => {
-        setPreset(120, 15, 0.01, presetSolar);
+        setPreset(80, 15, 0.02, presetSolar);
     });
 
     // -------------------------------------------------------------
-    // PLAY GAME / MANUAL CONTROLS STATE & LOGIC
+    // NAVIGATION TABS WORKSPACE SYSTEM
     // -------------------------------------------------------------
-    const btnControlAuto = document.getElementById('btn-control-auto');
-    const btnControlManual = document.getElementById('btn-control-manual');
-    const panelPresets = document.getElementById('sidebar-presets-panel');
-    const panelConfig = document.getElementById('sidebar-config-panel');
-    const panelGame = document.getElementById('sidebar-game-panel');
+    const tabBtns = document.querySelectorAll('.tab-link');
+    const tabPanels = document.querySelectorAll('.tab-panel');
     
-    let isManualMode = false;
-    let gameStep = 0;
-    let gameSocKwh = 50.0;
-    let gameCellTemp = 25.0;
-    
-    let gamePriceSequence = [];
-    let gameSolarSequence = [];
-    let gameWeatherSequence = [];
-    
-    let gameTotalProfit = 0.0;
-    let gameTotalWear = 0.0;
-    let gameCumulativeReward = 0.0;
-    
-    let gameHistory = {
-        hours: [],
-        prices: [],
-        solarGens: [],
-        actions: [],
-        socTrajectory: [],
-        stepRewards: [],
-        profits: [],
-        wears: [],
-        explainers: [],
-        rawExplainers: []
-    };
-    
-    let aiTotalProfit = 0.0;
-    let aiTotalWear = 0.0;
-    let aiCumulativeReward = 0.0;
-
-    btnControlAuto.addEventListener('click', () => {
-        isManualMode = false;
-        btnControlAuto.classList.add('active');
-        btnControlManual.classList.remove('active');
-        panelPresets.style.display = 'block';
-        panelConfig.style.display = 'block';
-        panelGame.style.display = 'none';
-        runStochasticSimulation();
-    });
-    
-    btnControlManual.addEventListener('click', () => {
-        isManualMode = true;
-        btnControlManual.classList.add('active');
-        btnControlAuto.classList.remove('active');
-        panelPresets.style.display = 'none';
-        panelConfig.style.display = 'none';
-        panelGame.style.display = 'block';
-        initGame();
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetPanelId = btn.getAttribute('aria-controls');
+            
+            // Toggle active classes on tab headers
+            tabBtns.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+            
+            // Toggle visibility on panels
+            tabPanels.forEach(p => {
+                p.style.display = 'none';
+                p.classList.remove('active');
+            });
+            const activePanel = document.getElementById(targetPanelId);
+            if (activePanel) {
+                activePanel.style.display = 'flex';
+                // Trigger layout reflow for animation entry
+                void activePanel.offsetHeight;
+                activePanel.classList.add('active');
+            }
+            
+            // Context-sensitive sidebar controls toggle
+            const presetsPanel = document.getElementById('sidebar-presets-panel');
+            const configPanel = document.getElementById('sidebar-config-panel');
+            
+            if (targetPanelId === 'panel-simulation') {
+                isManualMode = false;
+                if (presetsPanel) presetsPanel.style.display = 'block';
+                if (configPanel) configPanel.style.display = 'block';
+                // Automatically re-run simulation to show current configurations
+                runStochasticSimulation();
+            } else if (targetPanelId === 'panel-game') {
+                isManualMode = true;
+                if (presetsPanel) presetsPanel.style.display = 'none';
+                if (configPanel) configPanel.style.display = 'none';
+                initGame();
+            } else {
+                isManualMode = false;
+                if (presetsPanel) presetsPanel.style.display = 'none';
+                if (configPanel) configPanel.style.display = 'none';
+            }
+        });
     });
 
+    // -------------------------------------------------------------
+    // INTERACTIVE GAME MODE LOGIC
+    // -------------------------------------------------------------
     function initGame() {
         gameStep = 0;
         gameSocKwh = batteryCapacity / 2.0;
@@ -356,13 +400,27 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateAiAgentResponse();
         updateGameDisplay();
         updateScorecard(0.0, 0.0, 0.0, []);
+        displayAiMetrics();
         setGameButtonsState(true);
         
-        renderMarketChart([], [], [], []);
-        renderSocChart([], []);
+        // Reset logs
+        const gameTableBody = document.querySelector('#game-logs-table tbody');
+        if (gameTableBody) gameTableBody.innerHTML = '';
         
-        const tableBody = document.querySelector('#hourly-logs-table tbody');
-        if (tableBody) tableBody.innerHTML = '';
+        // Render comparison charts (AI loaded, user empty)
+        renderGameComparisonCharts();
+        
+        // Reset visual schematic elements
+        if (elSchematicSolar) elSchematicSolar.textContent = "0.0 kW";
+        if (elSchematicSoc) elSchematicSoc.textContent = "50.0%";
+        if (elSchematicGrid) elSchematicGrid.textContent = "Idle";
+        if (pathSolar) pathSolar.style.display = 'none';
+        if (pathBatGrid) pathBatGrid.style.display = 'none';
+        
+        const gameHelpText = document.querySelector('.game-help-text');
+        if (gameHelpText) {
+            gameHelpText.innerHTML = `Click the buttons below or press keyboard shortcuts <strong>[1 / C]</strong> to Charge, <strong>[2 / S]</strong> for Standby, and <strong>[3 / D]</strong> to Discharge the battery. Try to beat the Soft Actor-Critic (SAC) AI Agent's total savings score!`;
+        }
     }
 
     function calculateAiAgentResponse() {
@@ -371,6 +429,14 @@ document.addEventListener('DOMContentLoaded', () => {
         aiTotalProfit = 0.0;
         aiTotalWear = 0.0;
         aiCumulativeReward = 0.0;
+        
+        aiHistory = {
+            socTrajectory: [],
+            actions: [],
+            profits: [],
+            wears: [],
+            stepRewards: []
+        };
         
         const timeStepDuration = 1.0;
         const baseEfficiency = 0.95;
@@ -442,7 +508,51 @@ document.addEventListener('DOMContentLoaded', () => {
             aiTotalProfit += stepProfit;
             aiTotalWear += degradationPenalty;
             aiCumulativeReward += stepReward;
+            
+            aiHistory.socTrajectory.push((socKwh / batteryCapacity) * 100);
+            aiHistory.actions.push(netPowerKw);
+            aiHistory.profits.push(stepProfit);
+            aiHistory.wears.push(degradationPenalty);
+            aiHistory.stepRewards.push(stepReward);
         }
+    }
+
+    function displayAiMetrics() {
+        document.getElementById('game-ai-profit').textContent = `$${aiTotalProfit.toFixed(2)}`;
+        document.getElementById('game-ai-wear').textContent = `$${aiTotalWear.toFixed(2)}`;
+        document.getElementById('game-ai-reward').textContent = aiCumulativeReward.toFixed(2);
+        
+        if (aiHistory.stepRewards && aiHistory.stepRewards.length > 0) {
+            const count = aiHistory.stepRewards.length;
+            let sum = 0.0;
+            for (let i = 0; i < count; i++) sum += aiHistory.stepRewards[i];
+            const mean = sum / count;
+            let varianceSum = 0.0;
+            for (let i = 0; i < count; i++) {
+                const diff = aiHistory.stepRewards[i] - mean;
+                varianceSum += diff * diff;
+            }
+            const volatility = Math.sqrt(varianceSum / count);
+            const sharpe = (mean / (volatility + 1e-6)) * 100.0;
+            
+            document.getElementById('game-ai-volatility').textContent = volatility.toFixed(4);
+            document.getElementById('game-ai-sharpe').textContent = `${sharpe.toFixed(2)}%`;
+        } else {
+            document.getElementById('game-ai-volatility').textContent = "0.0000";
+            document.getElementById('game-ai-sharpe').textContent = "0.00%";
+        }
+    }
+
+    function updateGameDisplay() {
+        const nextStep = Math.min(47, gameStep);
+        const currentPrice = gamePriceSequence[nextStep];
+        const currentSolar = gameSolarSequence[nextStep];
+        const weather = gameWeatherSequence[nextStep];
+        
+        document.getElementById('game-step-val').textContent = `Hour ${gameStep}/48`;
+        document.getElementById('game-price-val').textContent = `$${currentPrice.toFixed(2)}/kWh`;
+        document.getElementById('game-solar-val').textContent = `${currentSolar.toFixed(1)} kW`;
+        document.getElementById('game-weather-val').textContent = `${weather.icon} ${weather.name}`;
     }
 
     function executeGameStep(actionVal) {
@@ -527,12 +637,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const weatherLabel = `${weather.icon} ${weather.name} | ${explainer}`;
+        const finalSoc = (gameSocKwh / batteryCapacity) * 100;
         
         gameHistory.hours.push(gameStep);
         gameHistory.prices.push(currentPrice);
         gameHistory.solarGens.push(currentSolar);
         gameHistory.actions.push(netPowerKw);
-        gameHistory.socTrajectory.push((gameSocKwh / batteryCapacity) * 100);
+        gameHistory.socTrajectory.push(finalSoc);
         gameHistory.stepRewards.push(stepReward);
         gameHistory.profits.push(stepProfit);
         gameHistory.wears.push(degradationPenalty);
@@ -541,8 +652,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         updateScorecard(gameTotalProfit, gameTotalWear, gameCumulativeReward, gameHistory.stepRewards);
         
+        // -------------------------------------------------------------
+        // ANIMATE SCHEMATIC PATHS DYNAMICALLY
+        // -------------------------------------------------------------
         if (elSchematicSolar) elSchematicSolar.textContent = `${currentSolar.toFixed(1)} kW`;
-        const finalSoc = (gameSocKwh / batteryCapacity) * 100;
         if (elSchematicSoc) elSchematicSoc.textContent = `${finalSoc.toFixed(1)}%`;
         
         const batteryLvlVisual = document.getElementById('visual-battery-level');
@@ -557,7 +670,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 batteryLvlVisual.style.background = 'linear-gradient(90deg, var(--color-green) 0%, var(--color-primary) 100%)';
             }
         }
-        
         
         const isCharging = netPowerKw > 0.5;
         if (batteryBoltVisual) {
@@ -591,7 +703,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Toggle active aura pulse effects on SVG-embedded nodes
         const nodeSolar = document.getElementById('node-solar');
         const nodeBattery = document.getElementById('node-battery');
         const nodeGrid = document.getElementById('node-grid');
@@ -600,57 +711,88 @@ document.addEventListener('DOMContentLoaded', () => {
             else nodeSolar.classList.remove('solar-active');
         }
         if (nodeBattery) {
-            nodeBattery.classList.remove('charging-active', 'discharging-active');
-            if (isCharging) nodeBattery.classList.add('charging-active');
-            else if (isDischarging) nodeBattery.classList.add('discharging-active');
+            if (isCharging) {
+                nodeBattery.classList.add('charging-active');
+                nodeBattery.classList.remove('discharging-active');
+            } else if (isDischarging) {
+                nodeBattery.classList.add('discharging-active');
+                nodeBattery.classList.remove('charging-active');
+            } else {
+                nodeBattery.classList.remove('charging-active', 'discharging-active');
+            }
         }
         if (nodeGrid) {
-            nodeGrid.classList.remove('charging-active', 'discharging-active');
-            if (isCharging) nodeGrid.classList.add('charging-active');
-            else if (isDischarging) nodeGrid.classList.add('discharging-active');
+            if (isCharging || isDischarging) nodeGrid.classList.add('solar-active');
+            else nodeGrid.classList.remove('solar-active');
         }
-        
-        // Append row to logs table
-        const tableBody = document.querySelector('#hourly-logs-table tbody');
-        if (tableBody) {
+
+        // Add to Game Logs Table
+        const gameTableBody = document.querySelector('#game-logs-table tbody');
+        if (gameTableBody) {
+            const playerAction = netPowerKw;
+            const playerSoC = finalSoc;
+            const aiAction = aiHistory.actions[gameStep];
+            const aiSoC = aiHistory.socTrajectory[gameStep];
+            const playerProfit = stepProfit;
+            const aiProfit = aiHistory.profits[gameStep];
+            
             const tr = document.createElement('tr');
+            
+            const actionClassPlayer = playerAction > 0.5 ? 'tag-off-peak-charge' : playerAction < -0.5 ? 'tag-peak-discharge' : 'tag-idle-standby';
+            const actionClassAi = aiAction > 0.5 ? 'tag-off-peak-charge' : aiAction < -0.5 ? 'tag-peak-discharge' : 'tag-idle-standby';
+            
             tr.innerHTML = `
-                <td>${gameStep}h</td>
-                <td>$${(currentPrice * 1000.0).toFixed(2)}</td>
-                <td>${(currentSolar * 2.0).toFixed(1)}%</td>
-                <td>${netPowerKw >= 0 ? '+' : ''}${netPowerKw.toFixed(2)} kW</td>
-                <td>${finalSoc.toFixed(1)}%</td>
-                <td>$${stepProfit.toFixed(3)}</td>
-                <td>$${degradationPenalty.toFixed(3)}</td>
-                <td>${stepReward.toFixed(3)}</td>
-                <td><span class="decision-tag tag-${explainer.toLowerCase().replace(/[^a-z0-9]/g, '-')}">${weatherLabel}</span></td>
+                <td>Hour ${gameStep + 1}</td>
+                <td>$${currentPrice.toFixed(2)}</td>
+                <td>${currentSolar.toFixed(1)} kW</td>
+                <td><span class="decision-tag ${actionClassPlayer}">${playerAction > 0.5 ? '+' + playerAction.toFixed(1) : playerAction < -0.5 ? playerAction.toFixed(1) : '0.0'} kW</span></td>
+                <td>${playerSoC.toFixed(1)}%</td>
+                <td><span class="decision-tag ${actionClassAi}">${aiAction > 0.5 ? '+' + aiAction.toFixed(1) : aiAction < -0.5 ? aiAction.toFixed(1) : '0.0'} kW</span></td>
+                <td>${aiSoC.toFixed(1)}%</td>
+                <td class="${playerProfit >= 0 ? 'metric-delta positive' : 'metric-delta negative'}">${playerProfit >= 0 ? '+$' + playerProfit.toFixed(2) : '-$' + Math.abs(playerProfit).toFixed(2)}</td>
+                <td class="${aiProfit >= 0 ? 'metric-delta positive' : 'metric-delta negative'}">${aiProfit >= 0 ? '+$' + aiProfit.toFixed(2) : '-$' + Math.abs(aiProfit).toFixed(2)}</td>
+                <td>${weatherLabel}</td>
             `;
-            tableBody.appendChild(tr);
+            gameTableBody.appendChild(tr);
+            
+            // Auto-scroll table container to latest logs
+            const tableContainer = gameTableBody.parentElement.parentElement;
+            if (tableContainer) {
+                tableContainer.scrollTop = tableContainer.scrollHeight;
+            }
         }
-        
-        renderMarketChart(gameHistory.hours, gameHistory.prices, gameHistory.solarGens, gameHistory.actions);
-        renderSocChart(gameHistory.hours, gameHistory.socTrajectory);
         
         gameStep++;
+        updateGameDisplay();
+        renderGameComparisonCharts();
         
-        if (gameStep < 48) {
-            updateGameDisplay();
-        } else {
+        if (gameStep >= 48) {
             setGameButtonsState(false);
-            document.getElementById('game-step-val').textContent = "48h Complete!";
-            alert(`🎮 Simulation Complete!\n\nYour Profit: $${gameTotalProfit.toFixed(2)} (AI Agent: $${aiTotalProfit.toFixed(2)})\nYour Cumulative Reward: ${gameCumulativeReward.toFixed(2)} (AI Agent: ${aiCumulativeReward.toFixed(2)})\n\nCompare your dispatch decisions on the charts!`);
+            highlightWinner();
         }
     }
 
-    function updateGameDisplay() {
-        const nextPrice = gamePriceSequence[gameStep];
-        const nextSolar = gameSolarSequence[gameStep];
-        const nextWeather = gameWeatherSequence[gameStep];
+    function highlightWinner() {
+        const playerScore = gameCumulativeReward;
+        const aiScore = aiCumulativeReward;
         
-        document.getElementById('game-step-val').textContent = `Hour ${gameStep}/48`;
-        document.getElementById('game-price-val').textContent = `$${(nextPrice * 1000.0).toFixed(2)}/MWh`;
-        document.getElementById('game-solar-val').textContent = `${(nextSolar * 2.0).toFixed(1)}%`;
-        document.getElementById('game-weather-val').textContent = `${nextWeather.icon} ${nextWeather.name}`;
+        let message = "";
+        let themeColor = "";
+        if (playerScore > aiScore) {
+            message = `🎉 CONGRATULATIONS! You scored ${playerScore.toFixed(2)} and beat the SAC AI Agent (Score: ${aiScore.toFixed(2)})! You are a Smart Grid Master!`;
+            themeColor = 'var(--color-green)';
+        } else if (playerScore === aiScore) {
+            message = `⚖️ IT'S A TIE! Both you and the SAC AI Agent scored ${playerScore.toFixed(2)}! Incredible grid management skills!`;
+            themeColor = 'var(--color-primary)';
+        } else {
+            message = `🤖 SAC AI WINS! The AI Agent scored ${aiScore.toFixed(2)}, beating your score of ${playerScore.toFixed(2)}. Don't worry, SAC agents optimize continuous action spaces with infinite policy iterations. Try again to beat the model!`;
+            themeColor = 'var(--color-orange)';
+        }
+        
+        const gameHelpText = document.querySelector('.game-help-text');
+        if (gameHelpText) {
+            gameHelpText.innerHTML = `<span style="color: ${themeColor}; font-size: 15px; font-weight: 700; display: block; padding: 12px; background: rgba(255,255,255,0.02); border-left: 4px solid ${themeColor}; border-radius: 0 8px 8px 0; margin-bottom: 10px;">${message}</span>`;
+        }
     }
 
     function setGameButtonsState(enabled) {
@@ -660,32 +802,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateScorecard(profit, wear, reward, stepRewards) {
-        elTotalProfit.textContent = `$${profit.toFixed(2)}`;
-        elProfitDelta.textContent = `$${(profit / (gameStep > 0 ? (gameStep / 24.0) : 2.0)).toFixed(2)} / day`;
-        
-        elTotalWear.textContent = `$${wear.toFixed(2)}`;
-        elWearDelta.textContent = `-$${(wear / (gameStep > 0 ? (gameStep / 24.0) : 2.0)).toFixed(2)} / day`;
-        
-        elNetReward.textContent = reward.toFixed(2);
-        
-        if (stepRewards && stepRewards.length > 1) {
-            const count = stepRewards.length;
-            let sum = 0.0;
-            for (let i = 0; i < count; i++) sum += stepRewards[i];
-            const mean = sum / count;
-            let varianceSum = 0.0;
-            for (let i = 0; i < count; i++) {
-                const diff = stepRewards[i] - mean;
-                varianceSum += diff * diff;
-            }
-            const volatility = Math.sqrt(varianceSum / count);
-            const sharpe = (mean / (volatility + 1e-6)) * 100.0;
+        if (!isManualMode) {
+            elTotalProfit.textContent = `$${profit.toFixed(2)}`;
+            elProfitDelta.textContent = `$${(profit / 2.0).toFixed(2)} / day`;
             
-            elVolatility.textContent = volatility.toFixed(4);
-            elSharpe.textContent = `${sharpe.toFixed(2)}%`;
+            elTotalWear.textContent = `$${wear.toFixed(2)}`;
+            elWearDelta.textContent = `-$${(wear / 2.0).toFixed(2)} / day`;
+            
+            elNetReward.textContent = reward.toFixed(2);
+            
+            if (stepRewards && stepRewards.length > 1) {
+                const count = stepRewards.length;
+                let sum = 0.0;
+                for (let i = 0; i < count; i++) sum += stepRewards[i];
+                const mean = sum / count;
+                let varianceSum = 0.0;
+                for (let i = 0; i < count; i++) {
+                    const diff = stepRewards[i] - mean;
+                    varianceSum += diff * diff;
+                }
+                const volatility = Math.sqrt(varianceSum / count);
+                const sharpe = (mean / (volatility + 1e-6)) * 100.0;
+                
+                elVolatility.textContent = volatility.toFixed(4);
+                elSharpe.textContent = `${sharpe.toFixed(2)}%`;
+            } else {
+                elVolatility.textContent = "0.0000";
+                elSharpe.textContent = "0.00%";
+            }
         } else {
-            elVolatility.textContent = "0.0000";
-            elSharpe.textContent = "0.00%";
+            // Update manual game scorecard
+            document.getElementById('game-player-profit').textContent = `$${profit.toFixed(2)}`;
+            document.getElementById('game-player-wear').textContent = `$${wear.toFixed(2)}`;
+            document.getElementById('game-player-reward').textContent = reward.toFixed(2);
+            
+            if (stepRewards && stepRewards.length > 1) {
+                const count = stepRewards.length;
+                let sum = 0.0;
+                for (let i = 0; i < count; i++) sum += stepRewards[i];
+                const mean = sum / count;
+                let varianceSum = 0.0;
+                for (let i = 0; i < count; i++) {
+                    const diff = stepRewards[i] - mean;
+                    varianceSum += diff * diff;
+                }
+                const volatility = Math.sqrt(varianceSum / count);
+                const sharpe = (mean / (volatility + 1e-6)) * 100.0;
+                
+                document.getElementById('game-player-volatility').textContent = volatility.toFixed(4);
+                document.getElementById('game-player-sharpe').textContent = `${sharpe.toFixed(2)}%`;
+            } else {
+                document.getElementById('game-player-volatility').textContent = "0.0000";
+                document.getElementById('game-player-sharpe').textContent = "0.00%";
+            }
         }
     }
 
@@ -706,7 +875,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -------------------------------------------------------------
-    // STOCHASTIC SIMULATION CORE
+    // KEYBOARD SHORTCUTS FOR GAME PLAY
+    // -------------------------------------------------------------
+    document.addEventListener('keydown', (e) => {
+        if (!isManualMode || gameStep >= 48) return;
+
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        switch (e.key.toLowerCase()) {
+            case '1':
+            case 'c':
+                e.preventDefault();
+                executeGameStep(1.0);   // Charge
+                break;
+            case '2':
+            case 's':
+                e.preventDefault();
+                executeGameStep(0.0);   // Standby
+                break;
+            case '3':
+            case 'd':
+                e.preventDefault();
+                executeGameStep(-1.0);  // Discharge
+                break;
+        }
+    });
+
+    // -------------------------------------------------------------
+    // STOCHASTIC SIMULATION CORE (AUTO AI MODE)
     // -------------------------------------------------------------
     function runStochasticSimulation() {
         if (isManualMode) return;
@@ -715,36 +912,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const baseEfficiency = 0.95;
         const degradationCostPerKwh = 0.02;
         
-        // Setup base profiles
         const basePriceProfile = [];
         const baseSolarProfile = [];
         for (let h = 0; h < 24; h++) {
-            // Price curve: peaks morning and evening
             const price = 0.15 + 0.1 * (
                 Math.sin(Math.PI * (h - 6) / 12) * (h < 12 ? 1 : 0) +
                 Math.sin(Math.PI * (h - 18) / 6) * (h >= 12 ? 1 : 0)
             );
             basePriceProfile.push(price);
             
-            // Solar irradiance: normal curve during daytime
             const solar = Math.max(0, 50 * Math.sin(Math.PI * (h - 6) / 12));
             baseSolarProfile.push(solar);
         }
 
-        // Initialize state variables
         let socKwh = batteryCapacity / 2.0; // Start at 50% SoC
         let priceNoise = 0.0;
         let solarNoise = 0.0;
         
-        // Markov Chain Weather initial state (0 = Sunny, 1 = Cloudy, 2 = Stormy)
         let weatherState = 0; 
         const weatherNames = ["SUNNY", "CLOUDY", "STORMY"];
         const weatherIcons = ["☀️", "⛅", "⛈️"];
         const weatherMultipliers = [1.0, 0.4, 0.08];
         const transitionMatrix = [
-            [0.75, 0.20, 0.05], // Sunny transitions
-            [0.25, 0.60, 0.15], // Cloudy transitions
-            [0.10, 0.35, 0.55]  // Stormy transitions
+            [0.75, 0.20, 0.05],
+            [0.25, 0.60, 0.15],
+            [0.10, 0.35, 0.55]
         ];
         
         const hours = [];
@@ -756,18 +948,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const profits = [];
         const wears = [];
         const explainers = [];
-        const rawExplainers = []; // keep raw for CSS classes
+        const rawExplainers = [];
         
         let totalProfit = 0.0;
         let totalWear = 0.0;
         let cumulativeReward = 0.0;
         let cellTemp = 25.0;
 
-        // Run 48-hour simulation
         for (let step = 0; step < 48; step++) {
             const currentHour = step % 24;
             
-            // Update weather state using Markov Chain transitions
             const rand = Math.random();
             let cumulativeProb = 0.0;
             let nextState = weatherState;
@@ -781,11 +971,9 @@ document.addEventListener('DOMContentLoaded', () => {
             weatherState = nextState;
             const weatherMultiplier = weatherMultipliers[weatherState];
             
-            // 1. AR(1) Stochastic update process
             const phiPrice = 0.8;
             const phiSolar = 0.7;
             
-            // Box-Muller transform to generate standard normal Gaussian noise
             const u1 = Math.random();
             const u2 = Math.random();
             const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
@@ -794,44 +982,34 @@ document.addEventListener('DOMContentLoaded', () => {
             priceNoise = phiPrice * priceNoise + z0 * priceVolatility;
             solarNoise = phiSolar * solarNoise + z1 * 2.0;
             
-            // Bound stochastic noise
             priceNoise = Math.max(-0.1, Math.min(0.1, priceNoise));
             solarNoise = Math.max(-10.0, Math.min(10.0, solarNoise));
             
             const currentPrice = Math.max(0.05, basePriceProfile[currentHour] + priceNoise);
             const currentSolar = Math.max(0.0, (baseSolarProfile[currentHour] + solarNoise) * weatherMultiplier);
             
-            // 2. SAC Actor Heuristic Neural-Network Policy
-            // Decision inputs: soc_norm, price_norm, solar_norm, hour
             const socNorm = socKwh / batteryCapacity;
             const isPeak = (9 <= currentHour && currentHour <= 12) || (18 <= currentHour && currentHour <= 21);
             
             let action = 0.0;
             if (currentPrice < 0.12 || (currentSolar > 15.0 && socNorm < 0.85)) {
-                // Low price or high solar: charge battery
                 action = 0.2 + 0.6 * (1.0 - socNorm);
             } else if (isPeak && currentPrice > 0.20 && socNorm > 0.15) {
-                // Peak demand high price: discharge to grid
                 action = -0.4 - 0.5 * socNorm;
             } else if (currentPrice > 0.16 && socNorm > 0.3) {
-                // Mid peak arbitrage
                 action = -0.3;
             }
             
-            // 3. Environment Physics and Dynamic Efficiency Constraints
             const rawPowerKw = action * maxPower;
-            
-            // Action space smoothing via soft-sigmoid to prevent extreme draws near bounds
             let smoothedPowerKw = rawPowerKw;
-            if (rawPowerKw > 0) { // Charging
+            if (rawPowerKw > 0) {
                 const chargeBoundsFactor = 1.0 - (1.0 / (1.0 + Math.exp(-20.0 * (socNorm - 0.9))));
                 smoothedPowerKw = rawPowerKw * chargeBoundsFactor;
-            } else if (rawPowerKw < 0) { // Discharging
+            } else if (rawPowerKw < 0) {
                 const dischargeBoundsFactor = 1.0 / (1.0 + Math.exp(-20.0 * (socNorm - 0.1)));
                 smoothedPowerKw = rawPowerKw * dischargeBoundsFactor;
             }
             
-            // Feasible bounds matching state limits
             const maxCharge = smoothedPowerKw > 0 ? Math.min(smoothedPowerKw, maxPower) : 0;
             const maxDischarge = smoothedPowerKw < 0 ? Math.max(smoothedPowerKw, -maxPower) : 0;
             
@@ -840,29 +1018,24 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const actualChargeKw = Math.min(maxCharge, availableCharge / timeStepDuration);
             const actualDischargeKw = Math.max(maxDischarge, -availableDischarge / timeStepDuration);
-            
             const netPowerKw = actualChargeKw + actualDischargeKw;
             
-            // Non-linear efficiency calculus
             const socEfficiency = 1.0 - 0.2 * (socNorm * socNorm);
             const rateFactor = 1.0 - 0.1 * (Math.abs(netPowerKw) / maxPower);
             const efficiency = Math.max(0.7, baseEfficiency * socEfficiency * rateFactor);
             
-            // State transitions
             if (netPowerKw >= 0) {
                 socKwh = Math.min(batteryCapacity, socKwh + netPowerKw * timeStepDuration * efficiency);
             } else {
                 socKwh = Math.max(0, socKwh - Math.abs(netPowerKw) * timeStepDuration / efficiency);
             }
             
-            // Multi-objective reward shaping
             const stepProfit = currentPrice * (-netPowerKw) * timeStepDuration;
             const greenBonus = 0.1 * actualChargeKw * currentSolar / 100.0 * timeStepDuration;
             
-            // Dynamic Thermal Wear Calculus
             const T_amb = 25.0;
             const T_nominal = 25.0;
-            const R_thermal = 0.001; // lower resistance for scaled power
+            const R_thermal = 0.001;
             const tau = 0.1;
             const lambda_wear = 0.005;
             
@@ -870,12 +1043,14 @@ document.addEventListener('DOMContentLoaded', () => {
             cellTemp = T_amb + R_thermal * powerSquared + (1.0 - tau) * (cellTemp - T_amb);
             const tempDiff = cellTemp - T_nominal;
             const dynamicDegradationRate = degradationCostPerKwh * (1.0 + lambda_wear * (tempDiff * tempDiff));
-            
             const degradationPenalty = dynamicDegradationRate * Math.abs(netPowerKw) * timeStepDuration;
             
             const stepReward = stepProfit + greenBonus - degradationPenalty;
             
-            // Heuristic explanation
+            totalProfit += stepProfit;
+            totalWear += degradationPenalty;
+            cumulativeReward += stepReward;
+            
             let explainer = "💤 IDLE_STANDBY";
             if (action > 0) {
                 if (currentSolar > 15.0) {
@@ -891,15 +1066,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // Generate weather-prefixed explanation text
             const weatherLabel = `${weatherIcons[weatherState]} ${weatherNames[weatherState]} | ${explainer}`;
             
-            // Accumulate metrics
-            totalProfit += stepProfit;
-            totalWear += degradationPenalty;
-            cumulativeReward += stepReward;
-            
-            // Record logs
             hours.push(step);
             prices.push(currentPrice);
             solarGens.push(currentSolar);
@@ -912,62 +1080,44 @@ document.addEventListener('DOMContentLoaded', () => {
             rawExplainers.push(explainer);
         }
 
-        // -------------------------------------------------------------
-        // UPDATE METRIC CARDS
-        // -------------------------------------------------------------
-        elTotalProfit.textContent = `$${totalProfit.toFixed(2)}`;
-        elProfitDelta.textContent = `$${(totalProfit / 2.0).toFixed(2)} / day`;
+        updateScorecard(totalProfit, totalWear, cumulativeReward, stepRewards);
         
-        elTotalWear.textContent = `$${totalWear.toFixed(2)}`;
-        elWearDelta.textContent = `-$${(totalWear / 2.0).toFixed(2)} / day`;
-        
-        elNetReward.textContent = cumulativeReward.toFixed(2);
-        
-        // -------------------------------------------------------------
-        // UPDATE LIVE GRID SCHEMATIC & POWER FLOW PATHS
-        // -------------------------------------------------------------
-        const finalSolar = solarGens[47];
-        const finalSoc = socTrajectory[47];
-        const finalNetPower = actions[47];
-        const finalHour = hours[47] % 24;
-        
-        if (elSchematicSolar) elSchematicSolar.textContent = `${finalSolar.toFixed(1)} kW`;
-        if (elSchematicSoc) elSchematicSoc.textContent = `${finalSoc.toFixed(1)}%`;
+        // Update live schematic with final step values
+        const lastStepIdx = 47;
+        if (elSchematicSolar) elSchematicSolar.textContent = `${solarGens[lastStepIdx].toFixed(1)} kW`;
+        const lastSoc = socTrajectory[lastStepIdx];
+        if (elSchematicSoc) elSchematicSoc.textContent = `${lastSoc.toFixed(1)}%`;
         
         const batteryLvlVisual = document.getElementById('visual-battery-level');
         const batteryBoltVisual = document.getElementById('visual-battery-bolt');
-        const isCharging = finalNetPower > 0.5;
-        
         if (batteryLvlVisual) {
-            batteryLvlVisual.style.width = `${finalSoc.toFixed(0)}%`;
-            if (finalSoc < 20.0) {
+            batteryLvlVisual.style.width = `${lastSoc.toFixed(0)}%`;
+            if (lastSoc < 20.0) {
                 batteryLvlVisual.style.background = 'linear-gradient(90deg, var(--color-red) 0%, var(--color-orange) 100%)';
-            } else if (finalSoc < 50.0) {
+            } else if (lastSoc < 50.0) {
                 batteryLvlVisual.style.background = 'linear-gradient(90deg, var(--color-orange) 0%, var(--color-primary) 100%)';
             } else {
                 batteryLvlVisual.style.background = 'linear-gradient(90deg, var(--color-green) 0%, var(--color-primary) 100%)';
             }
         }
+        
+        const isCharging = actions[lastStepIdx] > 0.5;
         if (batteryBoltVisual) {
             batteryBoltVisual.style.display = isCharging ? 'block' : 'none';
         }
         
         let gridStatusText = "Idle / Balanced";
-        if (finalNetPower > 0.5) {
-            gridStatusText = `Importing: +${finalNetPower.toFixed(1)} kW`;
-        } else if (finalNetPower < -0.5) {
-            gridStatusText = `Exporting: ${finalNetPower.toFixed(1)} kW`;
+        if (actions[lastStepIdx] > 0.5) {
+            gridStatusText = `Importing: +${actions[lastStepIdx].toFixed(1)} kW`;
+        } else if (actions[lastStepIdx] < -0.5) {
+            gridStatusText = `Exporting: ${actions[lastStepIdx].toFixed(1)} kW`;
         }
         if (elSchematicGrid) elSchematicGrid.textContent = gridStatusText;
         
-        // Solar path active if daytime (6h to 18h) and weather solar is high
-        const isDaytime = (6 <= finalHour && finalHour <= 18);
-        const isSolarActive = isDaytime && finalSolar > 2.0;
-        if (pathSolar) {
-            pathSolar.style.display = isSolarActive ? 'block' : 'none';
-        }
+        const isDaytime = true; // Solar arrays active
+        if (pathSolar) pathSolar.style.display = solarGens[lastStepIdx] > 2.0 ? 'block' : 'none';
         
-        const isDischarging = finalNetPower < -0.5;
+        const isDischarging = actions[lastStepIdx] < -0.5;
         if (pathBatGrid) {
             if (isCharging) {
                 pathBatGrid.style.display = 'block';
@@ -982,74 +1132,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Toggle active aura pulse effects on SVG-embedded nodes at end of simulation
-        const nodeSolar = document.getElementById('node-solar');
-        const nodeBattery = document.getElementById('node-battery');
-        const nodeGrid = document.getElementById('node-grid');
-        if (nodeSolar) {
-            if (isSolarActive) nodeSolar.classList.add('solar-active');
-            else nodeSolar.classList.remove('solar-active');
-        }
-        if (nodeBattery) {
-            nodeBattery.classList.remove('charging-active', 'discharging-active');
-            if (isCharging) nodeBattery.classList.add('charging-active');
-            else if (isDischarging) nodeBattery.classList.add('discharging-active');
-        }
-        if (nodeGrid) {
-            nodeGrid.classList.remove('charging-active', 'discharging-active');
-            if (isCharging) nodeGrid.classList.add('charging-active');
-            else if (isDischarging) nodeGrid.classList.add('discharging-active');
-        }
+        // Render Simulation Plotly Charts
+        renderMarketChart(hours, prices, solarGens, actions);
+        renderSocChart(hours, socTrajectory);
 
-        // 12-Hour Rolling Volatility Risk & Sharpe Ratio calculation
-        const windowSize = 12;
-        let recentRewardsSum = 0.0;
-        for (let i = 48 - windowSize; i < 48; i++) {
-            recentRewardsSum += stepRewards[i];
-        }
-        const meanReward = recentRewardsSum / windowSize;
-        
-        let sumSquaredDiffs = 0.0;
-        for (let i = 48 - windowSize; i < 48; i++) {
-            const diff = stepRewards[i] - meanReward;
-            sumSquaredDiffs += diff * diff;
-        }
-        const volatilityRisk = Math.sqrt(sumSquaredDiffs / windowSize);
-        const sharpeRatio = (meanReward / (volatilityRisk + 1e-6)) * 100.0;
-
-        if (elVolatility) elVolatility.textContent = volatilityRisk.toFixed(4);
-        if (elSharpe) elSharpe.textContent = `${sharpeRatio.toFixed(2)}% (12h)`;
-
-        // Render detailed hourly logs in the expandable table
+        // Update Hourly Simulation Table Logs
         const tableBody = document.querySelector('#hourly-logs-table tbody');
         if (tableBody) {
             tableBody.innerHTML = '';
             for (let i = 0; i < 48; i++) {
                 const tr = document.createElement('tr');
+                const actionClass = actions[i] > 0.5 ? 'tag-off-peak-charge' : actions[i] < -0.5 ? 'tag-peak-discharge' : 'tag-idle-standby';
                 tr.innerHTML = `
-                    <td>${hours[i]}h</td>
-                    <td>$${(prices[i] * 1000.0).toFixed(2)}</td>
-                    <td>${(solarGens[i] * 2.0).toFixed(1)}%</td>
-                    <td>${actions[i] >= 0 ? '+' : ''}${actions[i].toFixed(2)} kW</td>
+                    <td>Hour ${i + 1}</td>
+                    <td>$${prices[i].toFixed(2)}</td>
+                    <td>${solarGens[i].toFixed(1)} kW</td>
+                    <td><span class="decision-tag ${actionClass}">${actions[i] > 0.5 ? '+' + actions[i].toFixed(1) : actions[i] < -0.5 ? actions[i].toFixed(1) : '0.0'} kW</span></td>
                     <td>${socTrajectory[i].toFixed(1)}%</td>
-                    <td>$${profits[i].toFixed(3)}</td>
-                    <td>$${wears[i].toFixed(3)}</td>
-                    <td>${stepRewards[i].toFixed(3)}</td>
-                    <td><span class="decision-tag tag-${rawExplainers[i].toLowerCase().replace(/[^a-z0-9]/g, '-')}">${explainers[i]}</span></td>
+                    <td class="${profits[i] >= 0 ? 'metric-delta positive' : 'metric-delta negative'}">${profits[i] >= 0 ? '+$' + profits[i].toFixed(2) : '-$' + Math.abs(profits[i]).toFixed(2)}</td>
+                    <td class="metric-delta negative">-$${wears[i].toFixed(2)}</td>
+                    <td>${stepRewards[i].toFixed(2)}</td>
+                    <td>${explainers[i]}</td>
                 `;
                 tableBody.appendChild(tr);
             }
         }
-
-        // -------------------------------------------------------------
-        // RENDER INTERACTIVE CHARTS
-        // -------------------------------------------------------------
-        renderMarketChart(hours, prices, solarGens, actions);
-        renderSocChart(hours, socTrajectory);
     }
 
     // -------------------------------------------------------------
-    // PLOTLY CHART BUILDERS
+    // PLOTLY CHART RENDERERS
     // -------------------------------------------------------------
     function renderMarketChart(hours, prices, solarGens, actions) {
         const tracePrice = {
@@ -1058,14 +1169,15 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Electricity Price ($/kWh)',
             type: 'scatter',
             mode: 'lines',
-            line: { color: '#FF4B4B', width: 3 }
+            line: { color: '#E71D36', width: 2.5 }
         };
 
         const traceSolar = {
             x: hours,
             y: solarGens,
-            name: 'Solar Power (kW)',
+            name: 'Solar Output (kW)',
             type: 'scatter',
+            mode: 'lines',
             fill: 'tozeroy',
             opacity: 0.15,
             fillcolor: 'rgba(255, 159, 28, 0.25)',
@@ -1114,6 +1226,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        const skeletonMarket = document.getElementById('skeleton-market');
+        if (skeletonMarket) skeletonMarket.remove();
+
         Plotly.newPlot('market-chart', [tracePrice, traceSolar, traceDispatch], layout, { responsive: true, displayModeBar: false });
     }
 
@@ -1150,11 +1265,256 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        const skeletonSoc = document.getElementById('skeleton-soc');
+        if (skeletonSoc) skeletonSoc.remove();
+
         Plotly.newPlot('soc-chart', [traceSoc], layout, { responsive: true, displayModeBar: false });
     }
+
+    function renderGameComparisonCharts() {
+        // 1. SoC comparison chart
+        const tracePlayerSoc = {
+            x: gameHistory.hours,
+            y: gameHistory.socTrajectory,
+            name: 'Your SoC (%)',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#00F5D4', width: 3 },
+            marker: { color: '#00F5D4', size: 6 }
+        };
+        
+        const traceAiSoc = {
+            x: Array.from({length: 48}, (_, i) => i),
+            y: aiHistory.socTrajectory,
+            name: 'AI Agent SoC (%)',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#7B2CBF', width: 2.5, dash: 'dash' }
+        };
+        
+        const layoutSoc = {
+            title: {
+                text: 'SoC Trajectory Comparison: You vs. SAC AI Agent',
+                font: { family: 'Outfit', size: 15, color: '#F3F4F6' }
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            template: 'plotly_dark',
+            margin: { t: 50, b: 40, l: 50, r: 20 },
+            legend: { orientation: 'h', x: 0.5, y: 1.15, xanchor: 'center' },
+            xaxis: {
+                title: 'Hour',
+                gridcolor: 'rgba(255,255,255,0.05)',
+                tickmode: 'linear',
+                dtick: 4,
+                range: [0, 47]
+            },
+            yaxis: {
+                title: 'State-of-Charge (%)',
+                range: [-5, 105],
+                gridcolor: 'rgba(255,255,255,0.05)'
+            }
+        };
+        
+        Plotly.newPlot('game-soc-comparison', [traceAiSoc, tracePlayerSoc], layoutSoc, { responsive: true, displayModeBar: false });
+        
+        // 2. Action comparison chart (bar chart)
+        const tracePlayerAction = {
+            x: gameHistory.hours,
+            y: gameHistory.actions,
+            name: 'Your Dispatch (kW)',
+            type: 'bar',
+            marker: { color: 'rgba(0, 245, 212, 0.7)' }
+        };
+        
+        const traceAiAction = {
+            x: Array.from({length: 48}, (_, i) => i),
+            y: aiHistory.actions,
+            name: 'AI Agent Dispatch (kW)',
+            type: 'bar',
+            marker: { color: 'rgba(123, 44, 191, 0.45)' }
+        };
+        
+        const layoutAction = {
+            title: {
+                text: 'Power Dispatch Actions: You vs. SAC AI Agent',
+                font: { family: 'Outfit', size: 15, color: '#F3F4F6' }
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            template: 'plotly_dark',
+            margin: { t: 50, b: 40, l: 50, r: 20 },
+            legend: { orientation: 'h', x: 0.5, y: 1.15, xanchor: 'center' },
+            barmode: 'group',
+            xaxis: {
+                title: 'Hour',
+                gridcolor: 'rgba(255,255,255,0.05)',
+                tickmode: 'linear',
+                dtick: 4,
+                range: [0, 47]
+            },
+            yaxis: {
+                title: 'Power Dispatch (kW)',
+                gridcolor: 'rgba(255,255,255,0.05)'
+            }
+        };
+        
+        Plotly.newPlot('game-action-comparison', [traceAiAction, tracePlayerAction], layoutAction, { responsive: true, displayModeBar: false });
+    }
+
+    // -------------------------------------------------------------
+    // ACCESSIBILITY & THEMING HANDLERS
+    // -------------------------------------------------------------
+    const btnTextDecrease = document.getElementById('btn-text-decrease');
+    const btnTextReset = document.getElementById('btn-text-reset');
+    const btnTextIncrease = document.getElementById('btn-text-increase');
+    const btnContrastToggle = document.getElementById('btn-contrast-toggle');
+    
+    btnTextDecrease.addEventListener('click', () => {
+        document.body.classList.remove('text-size-lg');
+        document.body.classList.add('text-size-sm');
+        btnTextDecrease.classList.add('active');
+        btnTextReset.classList.remove('active');
+        btnTextIncrease.classList.remove('active');
+        localStorage.setItem('grid-text-size', 'sm');
+    });
+    
+    btnTextReset.addEventListener('click', () => {
+        document.body.classList.remove('text-size-sm', 'text-size-lg');
+        btnTextDecrease.classList.remove('active');
+        btnTextReset.classList.add('active');
+        btnTextIncrease.classList.remove('active');
+        localStorage.setItem('grid-text-size', 'md');
+    });
+    
+    btnTextIncrease.addEventListener('click', () => {
+        document.body.classList.remove('text-size-sm');
+        document.body.classList.add('text-size-lg');
+        btnTextDecrease.classList.remove('active');
+        btnTextReset.classList.remove('active');
+        btnTextIncrease.classList.add('active');
+        localStorage.setItem('grid-text-size', 'lg');
+    });
+    
+    btnContrastToggle.addEventListener('click', () => {
+        const isContrast = document.body.classList.toggle('high-contrast');
+        btnContrastToggle.classList.toggle('active', isContrast);
+        localStorage.setItem('grid-high-contrast', isContrast ? 'true' : 'false');
+    });
+    
+    // Restore settings from localStorage on load
+    const savedTextSize = localStorage.getItem('grid-text-size');
+    if (savedTextSize === 'sm') {
+        btnTextDecrease.click();
+    } else if (savedTextSize === 'lg') {
+        btnTextIncrease.click();
+    }
+    
+    const savedContrast = localStorage.getItem('grid-high-contrast');
+    if (savedContrast === 'true') {
+        btnContrastToggle.click();
+    }
+
+    // -------------------------------------------------------------
+    // ONBOARDING GUIDED TOUR STATE MACHINE
+    // -------------------------------------------------------------
+    let tourStep = 0;
+    const tourSteps = [
+        {
+            elementId: 'sidebar-mode-panel',
+            title: '🏡 Dashboard Mode',
+            description: 'You can switch the entire dashboard between <strong>Simple View</strong> (using natural terms like "bill savings" for laypeople) and <strong>Academic View</strong> (showing raw reinforcement learning terms like MDP variables and policy values).'
+        },
+        {
+            elementId: 'tab-btn-sim',
+            title: '📊 Navigation Tabs',
+            description: 'Switch between the <strong>Real-Time Simulation</strong>, the <strong>Interactive Game</strong> (where you play against the AI), the <strong>Math reference block</strong>, and the <strong>System Guide</strong>.'
+        },
+        {
+            elementId: 'sidebar-config-panel',
+            title: '⚙️ Grid Configuration',
+            description: 'Adjust variables like battery storage capacity, charging rates, and pricing volatility, and run new simulations dynamically.'
+        },
+        {
+            elementId: 'node-battery',
+            title: '🔌 Live Flow Schematic',
+            description: 'This interactive schematic updates in real-time. Connections animate with dash flow speeds mapping energy direction. Click any node to flash highlight its matching KPI card below!'
+        },
+        {
+            elementId: 'tab-btn-game',
+            title: '🎮 Test Your Skills!',
+            description: 'Ready to try beating the SAC agent? Switch to the <strong>Interactive Grid Game</strong> tab, where you manually charge/discharge the battery hour-by-hour and see how your decisions compare to the AI.'
+        }
+    ];
+
+    function showTourStep(index) {
+        if (index < 0 || index >= tourSteps.length) {
+            endTour();
+            return;
+        }
+        tourStep = index;
+        const step = tourSteps[index];
+        
+        // Clean previous highlights
+        document.querySelectorAll('.tour-highlight').forEach(el => {
+            el.classList.remove('tour-highlight');
+        });
+        
+        // Highlight active element
+        const targetEl = document.getElementById(step.elementId);
+        if (targetEl) {
+            targetEl.classList.add('tour-highlight');
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Update overlay card
+        const overlay = document.getElementById('tour-overlay');
+        const badge = document.getElementById('tour-badge');
+        const title = document.getElementById('tour-title');
+        const desc = document.getElementById('tour-description');
+        const prevBtn = document.getElementById('tour-prev');
+        const nextBtn = document.getElementById('tour-next');
+        
+        if (overlay) overlay.style.display = 'flex';
+        if (badge) badge.textContent = `Step ${index + 1} of ${tourSteps.length}`;
+        if (title) title.textContent = step.title;
+        if (desc) desc.innerHTML = step.description;
+        
+        if (prevBtn) prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+        if (nextBtn) nextBtn.textContent = index === tourSteps.length - 1 ? 'Finish' : 'Next \u2192';
+    }
+    
+    function endTour() {
+        document.getElementById('tour-overlay').style.display = 'none';
+        document.querySelectorAll('.tour-highlight').forEach(el => {
+            el.classList.remove('tour-highlight');
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    document.getElementById('btn-start-tour').addEventListener('click', () => {
+        showTourStep(0);
+    });
+    
+    document.getElementById('tour-prev').addEventListener('click', () => {
+        showTourStep(tourStep - 1);
+    });
+    
+    document.getElementById('tour-next').addEventListener('click', () => {
+        showTourStep(tourStep + 1);
+    });
+    
+    document.getElementById('tour-close').addEventListener('click', () => {
+        endTour();
+    });
+    
+    document.getElementById('tour-overlay').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('tour-overlay')) {
+            endTour();
+        }
+    });
 
     // Run initial simulation and setup labels on load
     updateDashboardLabels();
     runStochasticSimulation();
 });
-

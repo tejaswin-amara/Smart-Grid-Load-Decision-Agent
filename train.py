@@ -8,13 +8,7 @@ Program: CSIT, KLH University (Bachupally Campus)
 """
 
 import logging
-import numpy as np
-import gymnasium as gym
-from gymnasium import spaces
-from dataclasses import dataclass
-from typing import Tuple, Dict, Any
 from pathlib import Path
-import os
 
 from stable_baselines3 import SAC
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
@@ -41,10 +35,7 @@ def train_sac_agent(config: GridConfig) -> None:
     """
     logger.info("Starting SAC training with config: %s", config)
     
-    # Create environment
-    env = AdvancedSmartGridEnv(config=config, seed=42)
-    
-    # Wrap with DummyVecEnv for vectorization compatibility
+    # Create vectorized environment with 4 parallel instances
     env = DummyVecEnv([lambda: AdvancedSmartGridEnv(config=config, seed=i) for i in range(4)])
     
     # Wrap with VecNormalize for observation and reward normalization

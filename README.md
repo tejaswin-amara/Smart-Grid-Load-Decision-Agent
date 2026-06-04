@@ -46,7 +46,7 @@ By modeling volatile electricity markets and solar generation as Autoregressive 
 | :--- | :--- | :--- |
 | **🔮 8D Lookahead Forecast** | Expands the state-space tensor to include price predictions at $t+1, t+2, t+3, \text{ and } t+4$ hours. | Allows the actor network to predict peak generation windows and optimize deep-discharge cycles preemptively. |
 | **📈 Stochastic AR(1) Modeling** | Simulates electricity pricing and solar irradiance as mean-reverting Autoregressive random shock transitions. | Provides mathematically rigorous uncertainty boundaries for continuous action space stability. |
-| **💾 Production Serialization** | Compiles PyTorch policy networks directly to standard ONNX graphs with static `VecNormalize` parameters. | Enables backend-free high-speed inference without PyTorch or Python execution runtime overheads. |
+| **💾 Production Serialization** | Stable-Baselines3 `.zip` serialization with `VecNormalize` checkpoint support. | Enables portable model loading and deterministic inference with pre-fitted observation normalization statistics. |
 | **⚡ Serverless Edge Wasm** | Compiles and loads the entire data science stack client-side natively inside the browser via `stlite`. | Guarantees absolute user privacy, zero host-side server latency, and infinite scaling capabilities. |
 
 ---
@@ -73,14 +73,14 @@ Below is the layout of the project, demonstrating the clean decoupling of deep l
     ├── assets/                  # High-resolution screenshots and media assets
     │   └── schematic.png        # Live microgrid flow schematic visual asset
     ├── best_grid_model/         # Production serialization outputs
-    │   ├── best_model.onnx      # Compiled policy network computational graph
-    │   └── vec_normalize.pkl    # Running state observation normalization stats
+    │   ├── best_model.zip       # Stable-Baselines3 serialized SAC policy network
+    │   └── final_model.zip      # Final trained model with VecNormalize checkpoint
     ├── app.py                   # Streamlit interactive decision-agent application
     ├── environments.py          # Physics-informed Gymnasium microgrid MDP simulation
     ├── train.py                 # Stable-Baselines3 Soft Actor-Critic training loop
     ├── index.html               # Main portfolio landing page with interactive web-loader
     ├── styles.css               # Premium CSS styles for the web environment
-    ├── script.js                # WebAssembly stlite execution orchestrator
+    ├── script.js                # Client-side ES6 simulation engine with Plotly visualization
     ├── requirements.txt         # Project package requirements list
     └── README.md                # World-class documentation (this file)
 ```
@@ -169,7 +169,7 @@ cd Smart-Grid-Load-Decision-Agent
 # 2. Install PyTorch and standard dependencies
 pip install -r requirements.txt
 
-# 3. Execute the SAC training loop and compile the ONNX graph
+# 3. Execute the SAC training loop and save the model
 python train.py
 ```
 

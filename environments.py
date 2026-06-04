@@ -12,9 +12,11 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from dataclasses import dataclass
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
+
+__all__ = ['GridConfig', 'AdvancedSmartGridEnv']
 
 # Configurable Reward Weights
 ARBITRAGE_WEIGHT = 1.0       # Multiplier for financial arbitrage profit per kW
@@ -48,26 +50,27 @@ class AdvancedSmartGridEnv(gym.Env):
           Negative: charging, Positive: discharging
     """
     
-    metadata = {"render_modes": []}
+    metadata = {"render_modes": ["human"]}
     
-    def __init__(self, config: GridConfig = None, seed: int = None):
+    def __init__(self, config: GridConfig = None, seed: int = None, render_mode: Optional[str] = None):
         """Initialize the Smart Grid environment."""
         super().__init__()
         
         self.config = config or GridConfig()
         self.rng = np.random.RandomState(seed)
+        self.render_mode = render_mode
         
         # Observation space: [SoC, Price, Solar, Time]
         self.observation_space = spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0]),
-            high=np.array([1.0, 500.0, 1.0, 24.0]),
+            low=np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32),
+            high=np.array([1.0, 500.0, 1.0, 24.0], dtype=np.float32),
             dtype=np.float32
         )
         
         # Action space: continuous power dispatch [-max_power, max_power]
         self.action_space = spaces.Box(
-            low=-self.config.max_power_kw,
-            high=self.config.max_power_kw,
+            low=np.float32(-self.config.max_power_kw),
+            high=np.float32(self.config.max_power_kw),
             shape=(1,),
             dtype=np.float32
         )
@@ -204,11 +207,11 @@ class AdvancedSmartGridEnv(gym.Env):
             discharge_bounds_factor = 1.0 / (1.0 + np.exp(-20.0 * (self.soc - 0.1)))
             smoothed_power_kw = power_kw * discharge_bounds_factor
             
+            efficiency = self._calculate_charging_efficiency(self.soc)
             # Limit by available energy
             max_discharge_rate = self.soc * self.config.battery_capacity_kwh / dt_hours
-            # Note: A real battery would also have discharge losses, modeled as actual_power_released = actual_power * efficiency
-            # Here we follow the previous simplified model where discharge efficiency is 1.0
-            actual_power = min(smoothed_power_kw, max_discharge_rate)
+            # Apply discharge efficiency: actual power delivered is reduced by losses
+            actual_power = min(smoothed_power_kw, max_discharge_rate) * efficiency
         
         # Update state of charge
         energy_change_kwh = actual_power * dt_hours / self.config.battery_capacity_kwh
@@ -328,6 +331,7 @@ class AdvancedSmartGridEnv(gym.Env):
             observation: Initial state
             info: Initial information dictionary
         """
+        super().reset(seed=seed)
         if seed is not None:
             self.rng = np.random.RandomState(seed)
         
@@ -357,3 +361,21 @@ class AdvancedSmartGridEnv(gym.Env):
         logger.debug("Environment reset to initial state")
         
         return observation, info
+
+    def render(self) -> Optional[str]:
+        """Render the current environment state."""
+        if self.render_mode == "human":
+            time_of_day = (self.current_step / 60.0) % 24.0
+            weather = self.weather_names[self.weather_state]
+            status = (
+                f"Step: {self.current_step:4d} | "
+                f"SoC: {self.soc*100:5.1f}% | "
+                f"Price: ${self.current_price:6.1f}/MWh | "
+                f"Solar: {self.current_solar_base*100:5.1f}% | "
+                f"Time: {time_of_day:5.1f}h | "
+                f"Weather: {weather} | "
+                f"Reward: {self.cumulative_reward:8.2f}"
+            )
+            print(status)
+            return status
+        return None
