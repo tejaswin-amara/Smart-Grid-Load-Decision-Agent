@@ -532,8 +532,8 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                 <path d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="{path_bat_grid_color}" stroke-width="3.5" filter="{path_bat_grid_filter}" stroke-dasharray="10, 10" style="{path_bat_grid_style} animation: {path_bat_grid_anim};" />
                 
                 <!-- Solar Node -->
-                <foreignObject x="5" y="22" width="145" height="120" style="padding: 10px; box-sizing: border-box; overflow: visible;">
-                    <div class="{solar_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
+                <foreignObject x="5" y="22" width="145" height="120" style="overflow: visible;">
+                    <div class="{solar_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; box-sizing: border-box; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
                         <span style="font-size: 22px; margin-bottom: 4px;">☀️</span>
                         <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Solar PV Array</span>
                         <span style="font-size: 11px; font-weight: 600; color: #FF9F1C; margin-top: 3px;">{solar_kw:.1f} kW</span>
@@ -541,8 +541,8 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                 </foreignObject>
 
                 <!-- Battery Node -->
-                <foreignObject x="225" y="12" width="150" height="136" style="padding: 10px; box-sizing: border-box; overflow: visible;">
-                    <div class="{bat_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
+                <foreignObject x="225" y="12" width="150" height="136" style="overflow: visible;">
+                    <div class="{bat_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; box-sizing: border-box; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
                         <div style="display: flex; align-items: center; margin-bottom: 5px;">
                             <div style="width: 40px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 4px; padding: 1.5px; display: flex; align-items: center; background: rgba(0,0,0,0.3); position: relative;">
                                 <div style="width: {soc_percent:.0f}%; height: 100%; background: {bat_fill}; border-radius: 1.5px; transition: width 0.3s ease;"></div>
@@ -556,8 +556,8 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                 </foreignObject>
 
                 <!-- Grid Node -->
-                <foreignObject x="450" y="22" width="145" height="120" style="padding: 10px; box-sizing: border-box; overflow: visible;">
-                    <div class="{grid_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
+                <foreignObject x="450" y="22" width="145" height="120" style="overflow: visible;">
+                    <div class="{grid_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; box-sizing: border-box; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
                         <span style="font-size: 22px; margin-bottom: 4px;">⚡</span>
                         <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Utility Grid</span>
                         <span style="font-size: 11px; font-weight: 600; color: #2EC4B6; margin-top: 3px; text-align: center;">{grid_text}</span>
