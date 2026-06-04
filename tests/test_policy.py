@@ -1,4 +1,11 @@
 """
+Project: Stochastic Smart Grid Load Decision Agent
+Course: Computational Foundations for Artificial Intelligence
+Author: Tejaswin Amara
+Roll Number: 2520090104
+Program: CSIT, KLH University (Bachupally Campus)
+Academic Standing: I Year (III Semester)
+
 Test suite for the heuristic SAC policy (run_heuristic_sac_policy) from app.py.
 """
 

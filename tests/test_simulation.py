@@ -1,8 +1,12 @@
 """
-Test suite for the SimulationEngine module.
+Project: Stochastic Smart Grid Load Decision Agent
+Course: Computational Foundations for Artificial Intelligence
+Author: Tejaswin Amara
+Roll Number: 2520090104
+Program: CSIT, KLH University (Bachupally Campus)
+Academic Standing: I Year (III Semester)
 
-NOTE: These tests will fail until simulation.py is created by another agent.
-This is expected and intentional.
+Test suite for the SimulationEngine module.
 """
 
 import os
