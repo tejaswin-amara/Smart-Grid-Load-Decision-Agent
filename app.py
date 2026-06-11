@@ -456,17 +456,23 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
     is_solar_active = solar_kw > 2.0
     
     path_solar_style = "display: block;" if is_solar_active else "display: none;"
+    solar_duration = max(0.5, 3.0 - solar_kw * 0.05)
+    path_solar_anim = f"dash {solar_duration:.2f}s linear infinite"
     
     # Dynamic styling for path 2 (Battery-Grid connection)
     if is_charging:
+        abs_power = abs(net_power_kw)
+        bat_grid_duration = max(0.5, 3.0 - abs_power * 0.08)
         path_bat_grid_style = "display: block;"
         path_bat_grid_color = "#2EC4B6"  # Charge color (green)
-        path_bat_grid_anim = "dash-reverse 15s linear infinite"  # flow from Grid to Battery
+        path_bat_grid_anim = f"dash-reverse {bat_grid_duration:.2f}s linear infinite"  # flow from Grid to Battery
         path_bat_grid_filter = "url(#glow-green)"
     elif is_discharging:
+        abs_power = abs(net_power_kw)
+        bat_grid_duration = max(0.5, 3.0 - abs_power * 0.08)
         path_bat_grid_style = "display: block;"
         path_bat_grid_color = "#E71D36"  # Discharge color (red)
-        path_bat_grid_anim = "dash 15s linear infinite"  # flow from Battery to Grid
+        path_bat_grid_anim = f"dash {bat_grid_duration:.2f}s linear infinite"  # flow from Battery to Grid
         path_bat_grid_filter = "url(#glow-red)"
     else:
         path_bat_grid_style = "display: none;"
@@ -528,7 +534,7 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                 <path d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4" />
                 
                 <!-- Active dynamic glowing flow paths -->
-                <path d="M 140 82 C 165 52, 210 52, 235 82" fill="none" stroke="#FF9F1C" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="10, 10" style="{path_solar_style} animation: dash 15s linear infinite;" />
+                <path d="M 140 82 C 165 52, 210 52, 235 82" fill="none" stroke="#FF9F1C" stroke-width="3.5" filter="url(#glow-orange)" stroke-dasharray="10, 10" style="{path_solar_style} animation: {path_solar_anim};" />
                 <path d="M 365 82 C 390 52, 435 52, 460 82" fill="none" stroke="{path_bat_grid_color}" stroke-width="3.5" filter="{path_bat_grid_filter}" stroke-dasharray="10, 10" style="{path_bat_grid_style} animation: {path_bat_grid_anim};" />
                 
                 <!-- Solar Node -->

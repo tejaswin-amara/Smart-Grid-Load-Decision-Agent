@@ -494,19 +494,34 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // CSS transitions over display swaps
         const isSolarActive = (currentSolar > 2.0);
-        if (pathSolar) pathSolar.classList.toggle('flow-active', isSolarActive);
+        if (pathSolar) {
+            pathSolar.classList.toggle('flow-active', isSolarActive);
+            if (isSolarActive) {
+                const solarDuration = Math.max(0.5, 3.0 - currentSolar * 0.05);
+                pathSolar.style.animationDuration = `${solarDuration}s`;
+            } else {
+                pathSolar.style.animationDuration = '3s';
+            }
+        }
         
         const isDischarging = netPowerKw < -0.5;
         if (pathBatGrid) {
-            if (isCharging) {
-                pathBatGrid.classList.add('flow-active', 'reverse');
-                pathBatGrid.setAttribute('stroke', 'var(--color-green)');
-            } else if (isDischarging) {
-                pathBatGrid.classList.add('flow-active');
-                pathBatGrid.classList.remove('reverse');
-                pathBatGrid.setAttribute('stroke', 'var(--color-red)');
+            if (isCharging || isDischarging) {
+                const absPower = Math.abs(netPowerKw);
+                const batGridDuration = Math.max(0.5, 3.0 - absPower * 0.08);
+                pathBatGrid.style.animationDuration = `${batGridDuration}s`;
+                
+                if (isCharging) {
+                    pathBatGrid.classList.add('flow-active', 'reverse');
+                    pathBatGrid.setAttribute('stroke', 'var(--color-green)');
+                } else {
+                    pathBatGrid.classList.add('flow-active');
+                    pathBatGrid.classList.remove('reverse');
+                    pathBatGrid.setAttribute('stroke', 'var(--color-red)');
+                }
             } else {
                 pathBatGrid.classList.remove('flow-active', 'reverse');
+                pathBatGrid.style.animationDuration = '3s';
             }
         }
 

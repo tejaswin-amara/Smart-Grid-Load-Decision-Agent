@@ -183,3 +183,23 @@ def test_custom_config_propagation():
     assert env.action_space.low[0] == -50.0
     assert env.action_space.high[0] == 50.0
 
+
+def test_custom_reward_weights():
+    """Verify changing weights in GridConfig alters reward output."""
+    custom_low = GridConfig(arbitrage_weight=0.1, soc_centering_weight=1.0)
+    custom_high = GridConfig(arbitrage_weight=2.0, soc_centering_weight=50.0)
+    
+    env_low = AdvancedSmartGridEnv(config=custom_low)
+    env_high = AdvancedSmartGridEnv(config=custom_high)
+    
+    # 1. Check weight propagation alters reward outputs
+    env_low.soc = 0.99
+    env_high.soc = 0.99
+    
+    r_low = env_low._calculate_reward(power_kw=-10.0, price=100.0, solar=0.0)
+    r_high = env_high._calculate_reward(power_kw=-10.0, price=100.0, solar=0.0)
+    
+    # With low arbitrage and low centering penalty vs high arbitrage and high centering penalty,
+    # the outputs should be significantly different.
+    assert r_low != r_high, "Different reward weights must produce different reward values"
+

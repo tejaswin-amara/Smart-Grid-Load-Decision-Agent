@@ -40,6 +40,12 @@ class GridConfig:
     base_efficiency: float = 0.95
     degradation_cost_per_kwh: float = 0.02
     training_timesteps: int = 50000
+    
+    # Reward weights
+    arbitrage_weight: float = ARBITRAGE_WEIGHT
+    green_bonus_weight: float = GREEN_BONUS_WEIGHT
+    wear_weight: float = WEAR_WEIGHT
+    soc_centering_weight: float = SOC_CENTERING_WEIGHT
 
 
 class AdvancedSmartGridEnv(gym.Env):
@@ -242,12 +248,12 @@ class AdvancedSmartGridEnv(gym.Env):
         # Negative power (charging) at low price is good
         # Positive power (discharging) at high price is good
         arbitrage_reward = -power_kw * price * dt_hours / 1000.0
-        arbitrage_reward *= ARBITRAGE_WEIGHT
+        arbitrage_reward *= self.config.arbitrage_weight
         
         # 2. Green Bonus: Reward charging during high solar
         green_bonus = 0.0
         if power_kw < 0:  # Charging
-            green_bonus = -power_kw * solar * GREEN_BONUS_WEIGHT
+            green_bonus = -power_kw * solar * self.config.green_bonus_weight
         
         # 3. Degradation Penalty
         # Battery degradation is proportional to energy throughput
@@ -264,13 +270,14 @@ class AdvancedSmartGridEnv(gym.Env):
         power_squared = power_kw ** 2
         self.cell_temp = T_amb + R_thermal * power_squared + (1.0 - tau) * (self.cell_temp - T_amb)
         
+        # Update degradation rate
         temp_diff = self.cell_temp - T_nominal
         dynamic_degradation_rate = self.config.degradation_cost_per_kwh * (1.0 + lambda_wear * (temp_diff ** 2))
         
-        degradation_penalty = energy_processed * dynamic_degradation_rate * WEAR_WEIGHT
+        degradation_penalty = energy_processed * dynamic_degradation_rate * self.config.wear_weight
         
         # 4. Efficiency Bonus (encourage staying at mid-SoC)
-        soc_penalty = -SOC_CENTERING_WEIGHT * ((self.soc - 0.5) ** 2)
+        soc_penalty = -self.config.soc_centering_weight * ((self.soc - 0.5) ** 2)
         
         total_reward = arbitrage_reward + green_bonus - degradation_penalty + soc_penalty
         
