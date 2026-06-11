@@ -173,6 +173,26 @@ h1, h2, h3, h4, .logo-text, .section-title {
     font-weight: 600;
 }
 
+.premium-select {
+    width: 100%;
+    background: rgba(16, 24, 40, 0.9);
+    border: 1px solid var(--border-premium);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    margin-top: 6px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.premium-select:hover, .premium-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.15);
+}
+
 /* Premium range inputs */
 .premium-slider {
     -webkit-appearance: none;

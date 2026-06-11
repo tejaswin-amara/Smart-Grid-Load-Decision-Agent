@@ -139,6 +139,16 @@ Academic Standing: I Year (III Semester)
                         <input type="range" id="price-volatility" min="0.01" max="0.10" value="0.03" step="0.01" class="premium-slider">
                     </div>
 
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="battery-chemistry" id="label-chemistry-title">Battery Chemistry</label>
+                        </div>
+                        <select id="battery-chemistry" class="premium-select" aria-label="Select Battery Chemistry Preset">
+                            <option value="LFP" selected>🔋 LFP (92% Eff, Low Wear)</option>
+                            <option value="NMC">⚡ NMC (96% Eff, High Wear)</option>
+                        </select>
+                    </div>
+
                     <button id="run-simulation-btn" class="premium-btn" aria-label="Run 48-Hour Simulation">
                         <span class="btn-text">🚀 Run 48-Hour Simulation</span>
                     </button>

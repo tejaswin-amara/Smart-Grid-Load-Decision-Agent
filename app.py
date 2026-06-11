@@ -37,6 +37,28 @@ logger = logging.getLogger(__name__)
 from environments import GridConfig, AdvancedSmartGridEnv
 
 
+def rk4_update_temp(current_temp: float, power_kw: float, dt: float) -> float:
+    """Runge-Kutta 4th Order (RK4) integration for cell temperature stability."""
+    h = dt / 10.0
+    power_squared = power_kw ** 2
+    tau_thermal = 0.1
+    t_amb = 25.0
+    r_thermal = 0.001
+    alpha = -np.log(1.0 - tau_thermal) / dt
+    
+    def f(T):
+        return -alpha * (T - t_amb) + r_thermal * power_squared
+        
+    T = current_temp
+    for _ in range(10):
+        k1 = f(T)
+        k2 = f(T + 0.5 * h * k1)
+        k3 = f(T + 0.5 * h * k2)
+        k4 = f(T + h * k3)
+        T += (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+    return float(T)
+
+
 def run_heuristic_sac_policy(obs: np.ndarray, config: GridConfig) -> np.ndarray:
     """
     Highly optimized mathematical policy simulating a trained SAC agent's output.
@@ -241,7 +263,9 @@ def generate_game_sequences(
 
 def calculate_ai_response(
     price_seq: list, solar_seq: list, weather_seq: list,
-    capacity: float, power: float
+    capacity: float, power: float,
+    base_efficiency: float = 0.95,
+    degradation_cost_per_kwh: float = 0.02
 ) -> Tuple[float, float, float, Dict[str, list]]:
     """Precomputes Heuristic SAC Agent trajectory for the game sequences."""
     soc_kwh = capacity / 2.0
@@ -251,8 +275,6 @@ def calculate_ai_response(
     ai_reward = 0.0
     
     time_step_duration = 1.0
-    base_efficiency = 0.95
-    degradation_cost_per_kwh = 0.02
     
     ai_trajectory = {
         'hours': [],
@@ -312,14 +334,10 @@ def calculate_ai_response(
         step_profit = current_price * (-net_power_kw) * time_step_duration
         green_bonus = 0.1 * actual_charge_kw * current_solar / 100.0 * time_step_duration
         
-        T_amb = 25.0
         T_nominal = 25.0
-        R_thermal = 0.001
-        tau = 0.1
         lambda_wear = 0.005
         
-        power_squared = net_power_kw ** 2
-        cell_temp = T_amb + R_thermal * power_squared + (1.0 - tau) * (cell_temp - T_amb)
+        cell_temp = rk4_update_temp(cell_temp, net_power_kw, time_step_duration)
         temp_diff = cell_temp - T_nominal
         dynamic_degradation_rate = degradation_cost_per_kwh * (1.0 + lambda_wear * (temp_diff ** 2))
         degradation_penalty = dynamic_degradation_rate * abs(net_power_kw) * time_step_duration
@@ -799,6 +817,8 @@ def main():
         st.session_state.max_power_slider = 25
     if 'volatility_slider' not in st.session_state:
         st.session_state.volatility_slider = 0.03
+    if 'battery_chemistry_select' not in st.session_state:
+        st.session_state.battery_chemistry_select = "🔋 LFP (92% Eff, Low Wear)"
 
     # SIDEBAR CONTROLS
     if not is_manual:
@@ -853,17 +873,31 @@ def main():
                 key='volatility_slider'
             )
             
+            battery_chemistry = st.selectbox(
+                "Battery Chemistry Presets",
+                options=["🔋 LFP (92% Eff, Low Wear)", "⚡ NMC (96% Eff, High Wear)"],
+                index=0 if st.session_state.battery_chemistry_select == "🔋 LFP (92% Eff, Low Wear)" else 1,
+                key='battery_chemistry_select'
+            )
+            
             st.markdown("---")
             st.markdown("CSIT, KLH University (Roll: 2520090104)")
             st.markdown("**v13.0.0-PRODUCTION**")
             
         # AUTO AI MAIN LAYOUT
         # Automatically run evaluation simulation on load / slider updates
+        if "LFP" in st.session_state.battery_chemistry_select:
+            base_efficiency = 0.92
+            degradation_cost = 0.01
+        else:
+            base_efficiency = 0.96
+            degradation_cost = 0.03
+
         config = GridConfig(
             battery_capacity_kwh=float(battery_capacity),
             max_power_kw=float(max_power),
-            base_efficiency=0.95,
-            degradation_cost_per_kwh=0.02
+            base_efficiency=base_efficiency,
+            degradation_cost_per_kwh=degradation_cost
         )
         
         # Stochastic parameters passed from sliders
@@ -955,9 +989,18 @@ def main():
                     power = float(st.session_state.max_power_slider)
                     vol = float(st.session_state.volatility_slider)
                     
+                    if "LFP" in st.session_state.battery_chemistry_select:
+                        base_eff = 0.92
+                        deg_cost = 0.01
+                    else:
+                        base_eff = 0.96
+                        deg_cost = 0.03
+
                     price_seq, solar_seq, weather_seq = generate_game_sequences(capacity, power, vol)
                     ai_profit, ai_wear, ai_reward, ai_traj = calculate_ai_response(
-                        price_seq, solar_seq, weather_seq, capacity, power
+                        price_seq, solar_seq, weather_seq, capacity, power,
+                        base_efficiency=base_eff,
+                        degradation_cost_per_kwh=deg_cost
                     )
                     
                     st.session_state.game_active = True
@@ -1037,8 +1080,12 @@ def main():
                 if action_taken is not None:
                     # Execute Step Transition
                     time_step_duration = 1.0
-                    base_efficiency = 0.95
-                    degradation_cost_per_kwh = 0.02
+                    if "LFP" in st.session_state.battery_chemistry_select:
+                        base_efficiency = 0.92
+                        degradation_cost_per_kwh = 0.01
+                    else:
+                        base_efficiency = 0.96
+                        degradation_cost_per_kwh = 0.03
                     
                     soc_kwh = st.session_state.game_soc_kwh
                     soc_norm = soc_kwh / capacity
@@ -1074,14 +1121,10 @@ def main():
                     step_profit = price * (-net_power) * time_step_duration
                     green_bonus = 0.1 * actual_charge * solar / 100.0 * time_step_duration
                     
-                    T_amb = 25.0
                     T_nominal = 25.0
-                    R_thermal = 0.001
-                    tau = 0.1
                     lambda_wear = 0.005
                     
-                    power_squared = net_power ** 2
-                    cell_temp = T_amb + R_thermal * power_squared + (1.0 - tau) * (st.session_state.game_cell_temp - T_amb)
+                    cell_temp = rk4_update_temp(st.session_state.game_cell_temp, net_power, time_step_duration)
                     temp_diff = cell_temp - T_nominal
                     dynamic_degradation_rate = degradation_cost_per_kwh * (1.0 + lambda_wear * (temp_diff ** 2))
                     degradation_penalty = dynamic_degradation_rate * abs(net_power) * time_step_duration

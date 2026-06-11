@@ -121,6 +121,28 @@ class AdvancedSmartGridEnv(gym.Env):
         
         logger.info("AdvancedSmartGridEnv initialized with config: %s", self.config)
     
+    def _rk4_update_temp(self, power_kw: float, dt: float) -> float:
+        """Runge-Kutta 4th Order (RK4) integration for cell temperature stability."""
+        h = dt / 10.0
+        power_squared = power_kw ** 2
+        # tau is 0.1 per step (minute), so we scale it by dt
+        tau = 0.1
+        alpha = -np.log(1.0 - tau) / dt
+        T_amb = 25.0
+        R_thermal = 0.001
+        
+        def f(T):
+            return -alpha * (T - T_amb) + R_thermal * power_squared
+            
+        T = self.cell_temp
+        for _ in range(10):
+            k1 = f(T)
+            k2 = f(T + 0.5 * h * k1)
+            k3 = f(T + 0.5 * h * k2)
+            k4 = f(T + h * k3)
+            T += (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+        return float(T)
+
     def _generate_solar_profile(self, time_of_day: float) -> float:
         """
         Generate solar generation profile using sinusoidal curve.
@@ -259,16 +281,10 @@ class AdvancedSmartGridEnv(gym.Env):
         # Battery degradation is proportional to energy throughput
         energy_processed = abs(power_kw) * dt_hours
         
-        # Dynamic Thermal Wear Calculus
-        T_amb = 25.0
+        # Dynamic Thermal Wear Calculus via RK4 solver
         T_nominal = 25.0
-        R_thermal = 0.001 # lower resistance for scaled power
-        tau = 0.1
         lambda_wear = 0.005
-        
-        # Update cell temperature (I^2 * R approximated by power_kw^2)
-        power_squared = power_kw ** 2
-        self.cell_temp = T_amb + R_thermal * power_squared + (1.0 - tau) * (self.cell_temp - T_amb)
+        self.cell_temp = self._rk4_update_temp(power_kw, dt_hours)
         
         # Update degradation rate
         temp_diff = self.cell_temp - T_nominal

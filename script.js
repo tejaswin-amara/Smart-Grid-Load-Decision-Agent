@@ -9,8 +9,22 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // ── SIMULATION CONSTANTS ──────────────────────────────────────
-    const BASE_EFFICIENCY     = 0.95;
-    const DEGRADATION_COST    = 0.02;  // $/kWh
+    let baseEfficiency        = 0.95;
+    let degradationCost       = 0.02;  // $/kWh
+
+    const selectChemistry = document.getElementById('battery-chemistry');
+    function updateChemistryPreset(chemistry) {
+        if (chemistry === 'LFP') {
+            baseEfficiency = 0.92;
+            degradationCost = 0.01;
+        } else if (chemistry === 'NMC') {
+            baseEfficiency = 0.96;
+            degradationCost = 0.03;
+        }
+    }
+    if (selectChemistry) {
+        updateChemistryPreset(selectChemistry.value);
+    }
     const SOC_CENTERING_WEIGHT = 10.0;
     const R_THERMAL           = 0.001; // thermal resistance (deg C / W^2)
     const TAU_THERMAL         = 0.1;   // thermal time constant
@@ -35,6 +49,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const u2 = Math.random();
         const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
         return mean + std * z0;
+    }
+
+    function rk4UpdateTemp(temp, powerKw, dt) {
+        const h = dt / 10.0;
+        const powerSquared = powerKw * powerKw;
+        const alpha = -Math.log(1.0 - TAU_THERMAL) / dt;
+        
+        function f(T) {
+            return -alpha * (T - T_AMB) + R_THERMAL * powerSquared;
+        }
+        
+        let T = temp;
+        for (let i = 0; i < 10; i++) {
+            const k1 = f(T);
+            const k2 = f(T + 0.5 * h * k1);
+            const k3 = f(T + 0.5 * h * k2);
+            const k4 = f(T + h * k3);
+            T += (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+        }
+        return T;
     }
 
     // ── INTERACTIVE SCHEMATIC CLICK HANDLERS ──────────────────────
@@ -219,6 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
         [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
         if (!isManualMode) runStochasticSimulation();
     });
+
+    if (selectChemistry) {
+        selectChemistry.addEventListener('change', (e) => {
+            updateChemistryPreset(e.target.value);
+            [presetHome, presetStorm, presetSolar].forEach(btn => btn.classList.remove('active'));
+            if (!isManualMode) runStochasticSimulation();
+        });
+    }
 
     btnRunSimulation.addEventListener('click', () => {
         runStochasticSimulation();
@@ -433,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const socEfficiency = 1.0 - 0.2 * (socNorm * socNorm);
         const rateFactor = 1.0 - 0.1 * (Math.abs(netPowerKw) / maxPower);
-        const efficiency = Math.max(0.7, BASE_EFFICIENCY * socEfficiency * rateFactor);
+        const efficiency = Math.max(0.7, baseEfficiency * socEfficiency * rateFactor);
         
         let newSocKwh = socKwh;
         if (netPowerKw >= 0) {
@@ -449,10 +491,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const stepProfit = currentPrice * (-netPowerKw) * TIME_STEP_DURATION;
         const greenBonus = 0.1 * actualChargeKw * currentSolar / 100.0 * TIME_STEP_DURATION;
         
-        const powerSquared = netPowerKw * netPowerKw;
-        const newCellTemp = T_AMB + R_THERMAL * powerSquared + (1.0 - TAU_THERMAL) * (cellTemp - T_AMB);
+        const newCellTemp = rk4UpdateTemp(cellTemp, netPowerKw, TIME_STEP_DURATION);
         const tempDiff = newCellTemp - T_NOMINAL;
-        const dynamicDegradationRate = DEGRADATION_COST * (1.0 + LAMBDA_WEAR * (tempDiff * tempDiff));
+        const dynamicDegradationRate = degradationCost * (1.0 + LAMBDA_WEAR * (tempDiff * tempDiff));
         const degradationPenalty = dynamicDegradationRate * Math.abs(netPowerKw) * TIME_STEP_DURATION;
         
         const socNorm = gameSocKwh / batteryCapacity;

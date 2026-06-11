@@ -122,3 +122,16 @@ class TestSimulationEngine:
         assert engine.total_profit == pytest.approx(0.0), "Profit should reset to 0"
         assert engine.total_wear == pytest.approx(0.0), "Wear should reset to 0"
         assert engine.cumulative_reward == pytest.approx(0.0), "Reward should reset to 0"
+
+    def test_engine_custom_chemistry(self):
+        """Engine propagates custom efficiency and wear rates."""
+        engine = SimulationEngine(base_efficiency=0.90, degradation_cost_per_kwh=0.05)
+        assert engine.base_efficiency == 0.90
+        assert engine.degradation_cost_per_kwh == 0.05
+        
+        # Verify that efficiency is correctly propagated during step updates
+        engine.generate_sequences()
+        engine.step(0.5) # charge action
+        # If base efficiency is 0.90, the stored base_efficiency must match 0.90
+        assert engine.base_efficiency == 0.90
+

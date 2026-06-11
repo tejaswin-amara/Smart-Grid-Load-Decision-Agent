@@ -45,13 +45,17 @@ class SimulationEngine:
         capacity: float = 100.0,
         max_power: float = 25.0,
         volatility: float = 0.03,
-        seed: int = 42
+        seed: int = 42,
+        base_efficiency: float = 0.95,
+        degradation_cost_per_kwh: float = 0.02
     ) -> None:
         """Initialize the simulation engine with battery parameters."""
         self.capacity = capacity
         self.max_power = max_power
         self.volatility = volatility
         self.rng = np.random.RandomState(seed)
+        self.base_efficiency = base_efficiency
+        self.degradation_cost_per_kwh = degradation_cost_per_kwh
 
         # State variables
         self.soc_kwh: float = capacity / 2.0
@@ -83,6 +87,26 @@ class SimulationEngine:
     def soc_percent(self) -> float:
         """Current State of Charge as a percentage."""
         return (self.soc_kwh / self.capacity) * 100.0
+
+    def _rk4_update_temp(self, power_kw: float, dt: float) -> float:
+        """Runge-Kutta 4th Order (RK4) integration for cell temperature stability."""
+        h = dt / 10.0
+        power_squared = power_kw ** 2
+        # continuous time tau constant mapping e^(-alpha * dt) = 1 - self.TAU
+        # since self.TAU = 0.1, e^(-alpha * 1.0) = 0.9 => alpha = -np.log(0.9)
+        alpha = -np.log(1.0 - self.TAU) / dt
+        
+        def f(T):
+            return -alpha * (T - self.T_AMB) + self.R_THERMAL * power_squared
+            
+        T = self.cell_temp
+        for _ in range(10):
+            k1 = f(T)
+            k2 = f(T + 0.5 * h * k1)
+            k3 = f(T + 0.5 * h * k2)
+            k4 = f(T + h * k3)
+            T += (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+        return float(T)
 
     def reset(self) -> None:
         """Reset all state to initial conditions."""
@@ -211,7 +235,7 @@ class SimulationEngine:
         # Non-linear efficiency
         soc_efficiency = 1.0 - 0.2 * (soc_norm ** 2)
         rate_factor = 1.0 - 0.1 * (abs(net_power_kw) / self.max_power)
-        efficiency = max(0.7, self.BASE_EFFICIENCY * soc_efficiency * rate_factor)
+        efficiency = max(0.7, self.base_efficiency * soc_efficiency * rate_factor)
 
         # SoC state transition
         if net_power_kw >= 0:
@@ -223,15 +247,10 @@ class SimulationEngine:
         step_profit = current_price * (-net_power_kw) * self.TIME_STEP_DURATION
         green_bonus = 0.1 * actual_charge_kw * current_solar / 100.0 * self.TIME_STEP_DURATION
 
-        # Dynamic thermal wear calculus
-        power_squared = net_power_kw ** 2
-        self.cell_temp = (
-            self.T_AMB +
-            self.R_THERMAL * power_squared +
-            (1.0 - self.TAU) * (self.cell_temp - self.T_AMB)
-        )
+        # Dynamic thermal wear calculus via RK4 solver
+        self.cell_temp = self._rk4_update_temp(net_power_kw, self.TIME_STEP_DURATION)
         temp_diff = self.cell_temp - self.T_NOMINAL
-        dynamic_degradation_rate = self.DEGRADATION_COST_PER_KWH * (
+        dynamic_degradation_rate = self.degradation_cost_per_kwh * (
             1.0 + self.LAMBDA_WEAR * (temp_diff ** 2)
         )
         degradation_penalty = dynamic_degradation_rate * abs(net_power_kw) * self.TIME_STEP_DURATION
@@ -289,7 +308,9 @@ class SimulationEngine:
             capacity=self.capacity,
             max_power=self.max_power,
             volatility=self.volatility,
-            seed=42
+            seed=42,
+            base_efficiency=self.base_efficiency,
+            degradation_cost_per_kwh=self.degradation_cost_per_kwh
         )
         ai_engine.price_seq = list(self.price_seq)
         ai_engine.solar_seq = list(self.solar_seq)
