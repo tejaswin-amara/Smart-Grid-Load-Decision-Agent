@@ -44,10 +44,11 @@ By modeling volatile electricity markets and solar generation as Autoregressive 
 
 | Innovation | Core Breakthrough | Key Benefit |
 | :--- | :--- | :--- |
-| **🚧 Planned** | **8D Lookahead Forecast** | Will expand the state-space tensor to include price predictions at $t+1, t+2, t+3, \text{ and } t+4$ hours to let the actor predict peak generation windows. |
+| **🌡️ RK4 Thermal Integrator** | Solves cell temperature dynamics via 4th-Order Runge-Kutta ODE numerical solver. | Resolves step-size instability, ensuring robust thermal wear penalties across varying timescales. |
+| **🔋 Chemistry Presets** | Models battery presets: LFP (92% Eff, Low Wear) and NMC (96% Eff, High Wear). | Permits multi-objective sweeps to evaluate policy sensitivity under different battery configurations. |
 | **📈 Stochastic AR(1) Modeling** | Simulates electricity pricing and solar irradiance as mean-reverting Autoregressive random shock transitions. | Provides mathematically rigorous uncertainty boundaries for continuous action space stability. |
 | **💾 Production Serialization** | Stable-Baselines3 `.zip` serialization with `VecNormalize` checkpoint support. | Enables portable model loading and deterministic inference with pre-fitted observation normalization statistics. |
-| **⚡ Serverless Edge Wasm** | Compiles and loads the entire data science stack client-side natively inside the browser via `stlite`. | Guarantees absolute user privacy, zero host-side server latency, and infinite scaling capabilities. |
+| **⚡ Serverless Edge Wasm** | Compiles and loads the entire data science stack client-side natively inside the browser via `stlite.html` mounting. | Guarantees absolute user privacy, zero host-side server latency, and infinite scaling capabilities. |
 
 ---
 
@@ -57,10 +58,11 @@ Both the Python **Streamlit dashboard** (`app.py`) and the serverless **WebAssem
 
 | Feature | Core Functionality | Purpose for Layperson |
 | :--- | :--- | :--- |
+| **🔋 Chemistry Preset Select** | Switches battery presets dynamically (LFP: 92% efficiency / $0.01 wear; NMC: 96% efficiency / $0.03 wear). | Allows users to test how battery cell chemistry affects grid economics and battery lifespan. |
 | **🏡 1-Click Presets** | Pre-configured setups for *Home Battery*, *Pricing Crisis*, and *Solar Peak*. | Instantly evaluates microgrid models under recognizable scenarios without manual configuration. |
-| **🎓 Dual-Mode Toggle** | Instantly switches the entire dashboard between **Simple View** and **Academic View**. | Translates complex RL terms (State of Charge, Arbitrage, Volatility Risk) into natural natural language terms. |
+| **🎓 Dual-Mode Toggle** | Instantly switches the entire dashboard between **Simple View** and **Academic View**. | Translates complex RL terms (State of Charge, Arbitrage, Volatility Risk) into natural language terms. |
 | **🎮 Play the Simulator** | Turns control over to the user for a 48-hour step-by-step microgrid trading game. | Provides a direct head-to-head score comparison evaluating how manual trading fares against the Soft Actor-Critic agent. |
-| **🔌 Reactive SVG Flow** | A real-time vector schematic depicting active current paths (solar, grid import/export, charge/discharge). | Visually demonstrates physical battery state transitions and active power flow dynamics. |
+| **🔌 Dynamic SVG Flow** | A real-time vector schematic depicting active current paths. Particle speed dynamically scales with power flow. | Visually demonstrates physical battery state transitions and active power flow dynamics. |
 
 ---
 
@@ -81,7 +83,9 @@ Below is the layout of the project, demonstrating the clean decoupling of deep l
     ├── index.html               # Main portfolio landing page with interactive web-loader
     ├── styles.css               # Premium CSS styles for the web environment
     ├── script.js                # Client-side ES6 simulation engine with Plotly visualization
+    ├── stlite.html              # Streamlit-stlite mounting config (WASM Pyodide bridge)
     ├── requirements.txt         # Project package requirements list
+    ├── LICENSE                  # MIT License details
     └── README.md                # World-class documentation (this file)
 ```
 
@@ -108,6 +112,37 @@ Where the transition variables are defined as:
 
 ---
 
+## 🌡️ Thermodynamics & RK4 ODE Integration
+
+To model the cell temperature of the lithium battery ($T_{\text{cell}}$), we solve the continuous heat transfer differential equation:
+
+$$
+\frac{dT_{\text{cell}}}{dt} = -\alpha (T_{\text{cell}} - T_{\text{amb}}) + R_{\text{thermal}} \cdot P_t^2
+$$
+
+Where:
+* **$T_{\text{cell}}$**: Battery cell temperature ($^{\circ}\text{C}$).
+* **$T_{\text{amb}}$**: Ambient temperature ($25.0^{\circ}\text{C}$).
+* **$\alpha$**: Dissipation rate mapped to thermal time constant ($1 - e^{-\alpha \cdot \Delta t} = \tau_{\text{thermal}}$, where $\tau_{\text{thermal}} = 0.1$).
+* **$R_{\text{thermal}}$**: Thermal resistance coefficient ($0.001^{\circ}\text{C}/\text{W}^2$).
+* **$P_t$**: Power dispatch rate ($\text{kW}$).
+
+Instead of unstable linear approximations, the system evaluates cell temperature updates over 10 sub-steps using 4th-order Runge-Kutta numerical integration:
+
+$$
+\begin{aligned}
+k_1 &= f(T_n) \\
+k_2 &= f\left(T_n + \frac{h}{2}k_1\right) \\
+k_3 &= f\left(T_n + \frac{h}{2}k_2\right) \\
+k_4 &= f(T_n + h k_3) \\
+T_{n+1} &= T_n + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)
+\end{aligned}
+$$
+
+Where $h = \frac{\Delta t}{10}$ represents the sub-step integration interval.
+
+---
+
 ## 📐 Mathematical Reward Shaping
 
 The SAC agent optimizes a composite, physics-informed multi-objective reward function formulated to balance immediate financial gains with long-term infrastructure health:
@@ -126,10 +161,10 @@ The composite components are categorized and structured as:
   Charges the battery when electricity price $\rho_t$ is negative or low, and discharges at premium pricing tiers.
 - 🍃 **Green Bonus**:
   $$\max(0, -P_t \cdot S_t \cdot w_{\text{green}})$$
-  Provides a positive reward for discharging ($P_t < 0$) when local solar generation ($S_t$) is abundant, incentivizing local zero-emission loop closures.
+  Provides a positive reward for charging ($P_t < 0$) when local solar generation ($S_t$) is abundant, incentivizing local zero-emission loop closures.
 - 🌡️ **Dynamic Thermal Wear Penalty**:
   $$-|P_t| \cdot \Delta t \cdot C_{\text{deg}} \cdot (1 + \lambda(T_{\text{cell}} - T_{\text{nom}})^2) \cdot w_{\text{wear}}$$
-  Models battery degradation as a non-linear function of battery temperature ($T_{\text{cell}}$) above a nominal threshold ($T_{\text{nom}}$) and charge intensity.
+  Models battery degradation as a non-linear function of battery temperature ($T_{\text{cell}}$) above a nominal threshold ($T_{\text{nom}}$) and charge intensity. Mapped using chemistry preset cost $C_{\text{deg}}$ ($0.01\text{ USD/kWh}$ for LFP vs $0.03\text{ USD/kWh}$ for NMC).
 - 🎯 **State-of-Charge (SoC) Centering**:
   $$-w_{\text{soc}} (SoC_t - 0.5)^2$$
   Applies a mild continuous penalty for driving the battery to absolute extremes ($0\%$ or $100\%$), extending the battery's operational lifetime.
@@ -149,7 +184,7 @@ To visualize how the physical dynamics and mathematical boundaries ($P_t$, $S_t$
 
 #### What the Visual Lines Represent:
 *   **Solid Curved Vectors (Top)**: Model the active grid load pricing feed and raw photovoltaic solar array generation ($S_t$) capacity.
-*   **Dashed Animated Flow (Bottom)**: Represents the continuous charging/discharging battery load flow ($P_t$). The animation speed dynamically scales with physical current throughput, and the color state indicates active charging (solar surplus/off-peak grid) vs discharging (peak arbitrage).
+*   **Dashed Animated Flow (Bottom)**: Represents the continuous charging/discharging battery load flow ($P_t$). The animation speed dynamically scales with physical current throughput (faster flow for higher kW transfer rates), and the color state indicates active charging (solar surplus/off-peak grid) vs discharging (peak arbitrage).
 *   **Pulsing State-of-Charge (SoC) Indicators**: Track the physical energy boundaries to prevent overcharging or absolute deep discharge, matching the hard state invariants enforced mathematically in the Gymnasium environment loop.
 
 ---
