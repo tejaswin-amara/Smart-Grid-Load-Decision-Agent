@@ -201,7 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             configTitle: "Grid Configuration",
             capacity: "Battery Capacity",
             maxPower: "Max Power Output",
-            volatilitySlider: "AR(1) Price Volatility"
+            volatilitySlider: "AR(1) Price Volatility",
+            capacityHelp: "Maximum capacity (E_max) defining the upper bound of the State of Charge integrator.",
+            maxPowerHelp: "Maximum continuous power boundary (P_max) constraining the continuous action space.",
+            volatilityHelp: "Standard deviation parameter (sigma_p) driving the stochastic AR(1) price shock process.",
+            chemistryHelp: "Selects chemistry preset defining base round-trip efficiency (eta_base) and degradation rate (C_deg)."
         },
         simple: {
             desc: "Simulate how an AI battery agent automatically saves you money on electricity bills by storing cheap solar energy and avoiding peak pricing surges.",
@@ -213,7 +217,11 @@ document.addEventListener('DOMContentLoaded', () => {
             configTitle: "Battery Parameters",
             capacity: "Battery Energy Storage Capacity",
             maxPower: "Charging / Discharging Speed",
-            volatilitySlider: "Utility Price Volatility"
+            volatilitySlider: "Utility Price Volatility",
+            capacityHelp: "Determines how much total electricity the battery can store.",
+            maxPowerHelp: "Limits how fast the battery charges from solar or discharges to the grid.",
+            volatilityHelp: "Controls how wildly utility pricing fluctuates.",
+            chemistryHelp: "Selects battery type: NMC is highly efficient but wears out faster; LFP lasts longer but is less efficient."
         }
     };
 
@@ -230,6 +238,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('label-capacity-title').textContent = LABELS[mode].capacity;
         document.getElementById('label-maxpower-title').textContent = LABELS[mode].maxPower;
         document.getElementById('label-volatility-title').textContent = LABELS[mode].volatilitySlider;
+        
+        const elHelpCapacity = document.getElementById('help-capacity');
+        if (elHelpCapacity) elHelpCapacity.textContent = LABELS[mode].capacityHelp;
+        
+        const elHelpMaxPower = document.getElementById('help-maxpower');
+        if (elHelpMaxPower) elHelpMaxPower.textContent = LABELS[mode].maxPowerHelp;
+        
+        const elHelpVolatility = document.getElementById('help-volatility');
+        if (elHelpVolatility) elHelpVolatility.textContent = LABELS[mode].volatilityHelp;
+        
+        const elHelpChemistry = document.getElementById('help-chemistry');
+        if (elHelpChemistry) elHelpChemistry.textContent = LABELS[mode].chemistryHelp;
     }
 
     // Input validation on sliders
@@ -506,6 +526,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSchematicVisuals(netPowerKw, currentSolar, finalSoc, weatherMultiplier) {
         if (elSchematicSolar) elSchematicSolar.textContent = `${currentSolar.toFixed(1)} kW`;
         if (elSchematicSoc) elSchematicSoc.textContent = `${finalSoc.toFixed(1)}%`;
+        
+        const chemistry = selectChemistry ? selectChemistry.value : 'LFP';
+        const elBatteryMeta = document.getElementById('schematic-battery-meta');
+        if (elBatteryMeta) {
+            elBatteryMeta.textContent = `${chemistry} | ${batteryCapacity} kWh | ${maxPower} kW`;
+        }
+        const elGridMeta = document.getElementById('schematic-grid-meta');
+        if (elGridMeta) {
+            elGridMeta.textContent = `Volatility: ${priceVolatility.toFixed(2)}`;
+        }
         
         const batteryLvlVisual = document.getElementById('visual-battery-level');
         const batteryBoltVisual = document.getElementById('visual-battery-bolt');

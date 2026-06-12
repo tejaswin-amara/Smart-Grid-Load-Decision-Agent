@@ -2042,3 +2042,21 @@ body.high-contrast .access-btn.active {
     }
 }
 
+.control-help {
+    display: block;
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    opacity: 0.75;
+    line-height: 1.35;
+}
+
+.node-meta {
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 3.5px;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-weight: 400;
+}
+

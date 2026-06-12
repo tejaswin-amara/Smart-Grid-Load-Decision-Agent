@@ -121,6 +121,7 @@ Academic Standing: I Year (III Semester)
                             <span class="control-value" id="battery-capacity-val">100 kWh</span>
                         </div>
                         <input type="range" id="battery-capacity" min="50" max="200" value="100" step="10" class="premium-slider">
+                        <span class="control-help" id="help-capacity">Determines how much total electricity the battery can store.</span>
                     </div>
 
                     <div class="control-group">
@@ -129,6 +130,7 @@ Academic Standing: I Year (III Semester)
                             <span class="control-value" id="max-power-val">25 kW</span>
                         </div>
                         <input type="range" id="max-power" min="10" max="50" value="25" step="5" class="premium-slider">
+                        <span class="control-help" id="help-maxpower">Limits how fast the battery charges from solar or discharges to the grid.</span>
                     </div>
 
                     <div class="control-group">
@@ -137,6 +139,7 @@ Academic Standing: I Year (III Semester)
                             <span class="control-value" id="price-volatility-val">0.03</span>
                         </div>
                         <input type="range" id="price-volatility" min="0.01" max="0.10" value="0.03" step="0.01" class="premium-slider">
+                        <span class="control-help" id="help-volatility">Controls how wildly utility pricing fluctuates.</span>
                     </div>
 
                     <div class="control-group">
@@ -147,6 +150,7 @@ Academic Standing: I Year (III Semester)
                             <option value="LFP" selected>🔋 LFP (92% Eff, Low Wear)</option>
                             <option value="NMC">⚡ NMC (96% Eff, High Wear)</option>
                         </select>
+                        <span class="control-help" id="help-chemistry">Selects battery type: NMC is highly efficient but wears out faster; LFP lasts longer but is less efficient.</span>
                     </div>
 
                     <button id="run-simulation-btn" class="premium-btn" aria-label="Run 48-Hour Simulation">
@@ -210,6 +214,7 @@ Academic Standing: I Year (III Semester)
                                     <span class="node-icon" aria-hidden="true">☀️</span>
                                     <span class="node-label">Solar PV Array</span>
                                     <span class="node-value" id="schematic-solar-val">0.0 kW</span>
+                                    <span class="node-meta" id="schematic-solar-meta">Peak Solar: 50.0 kW</span>
                                 </div>
                             </foreignObject>
 
@@ -225,6 +230,7 @@ Academic Standing: I Year (III Semester)
                                     </div>
                                     <span class="node-label">Smart Battery</span>
                                     <span class="node-value" id="schematic-soc-val">50.0%</span>
+                                    <span class="node-meta" id="schematic-battery-meta">LFP | 100 kWh | 25 kW</span>
                                 </div>
                             </foreignObject>
 
@@ -234,6 +240,7 @@ Academic Standing: I Year (III Semester)
                                     <span class="node-icon" aria-hidden="true">⚡</span>
                                     <span class="node-label">Utility Grid</span>
                                     <span class="node-value" id="schematic-grid-val">Active</span>
+                                    <span class="node-meta" id="schematic-grid-meta">Volatility: 0.03</span>
                                 </div>
                             </foreignObject>
                         </svg>

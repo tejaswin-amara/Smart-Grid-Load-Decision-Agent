@@ -467,8 +467,14 @@ def create_soc_chart(trajectory: Dict[str, list]) -> go.Figure:
     return fig
 
 
-def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
-    """Renders real-time dynamic animated microgrid SVG flow visualizer."""
+def render_svg_schematic(
+    solar_kw, soc_percent, net_power_kw,
+    capacity: float = 100.0,
+    max_power: float = 25.0,
+    volatility: float = 0.03,
+    chemistry: str = "LFP"
+):
+    """Renders real-time dynamic animated microgrid SVG flow visualizer with parameters."""
     is_charging = net_power_kw > 0.5
     is_discharging = net_power_kw < -0.5
     is_solar_active = solar_kw > 2.0
@@ -561,9 +567,10 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                         <span style="font-size: 22px; margin-bottom: 4px;">☀️</span>
                         <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Solar PV Array</span>
                         <span style="font-size: 11px; font-weight: 600; color: #FF9F1C; margin-top: 3px;">{solar_kw:.1f} kW</span>
+                        <span class="node-meta">Peak Solar: 50.0 kW</span>
                     </div>
                 </foreignObject>
-
+ 
                 <!-- Battery Node -->
                 <foreignObject x="225" y="12" width="150" height="136" style="overflow: visible;">
                     <div class="{bat_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; box-sizing: border-box; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
@@ -576,15 +583,17 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
                         </div>
                         <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Smart Battery</span>
                         <span style="font-size: 11px; font-weight: 600; color: #00F5D4; margin-top: 3px;">{soc_percent:.1f}%</span>
+                        <span class="node-meta">{chemistry} | {capacity:.0f} kWh | {max_power:.0f} kW</span>
                     </div>
                 </foreignObject>
-
+ 
                 <!-- Grid Node -->
                 <foreignObject x="450" y="22" width="145" height="120" style="overflow: visible;">
                     <div class="{grid_node_class}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; box-sizing: border-box; text-align: center; background: rgba(16, 24, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); transition: all 0.35s ease;">
                         <span style="font-size: 22px; margin-bottom: 4px;">⚡</span>
                         <span style="font-size: 9.5px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;">Utility Grid</span>
                         <span style="font-size: 11px; font-weight: 600; color: #2EC4B6; margin-top: 3px; text-align: center;">{grid_text}</span>
+                        <span class="node-meta">Volatility: {volatility:.2f}</span>
                     </div>
                 </foreignObject>
             </svg>
@@ -604,6 +613,15 @@ def render_svg_schematic(solar_kw, soc_percent, net_power_kw):
             }}
             .schematic-node:active {{
                 transform: translateY(-2px) scale(1.01) !important;
+            }}
+            
+            .node-meta {{
+                font-size: 8px;
+                color: rgba(255, 255, 255, 0.45);
+                margin-top: 3.5px;
+                text-transform: none;
+                letter-spacing: 0.01em;
+                font-weight: 400;
             }}
             
             .solar-active {{
@@ -763,7 +781,6 @@ def main():
         )
         is_simple = (dashboard_mode == "🏡 Simple View")
         
-        # Translation dict based on Mode selection
         labels = {
             'desc': "Simulate how an AI battery agent automatically saves you money on electricity bills by storing cheap solar energy and avoiding peak pricing surges." if is_simple else "Live interactive verification of a Soft Actor-Critic (SAC) reinforcement learning agent optimizing real-time grid energy arbitrage under volatility.",
             'profit': "Total Electricity Bill Savings" if is_simple else "Total Energy Arbitrage Profit",
@@ -774,7 +791,11 @@ def main():
             'config_title': "Battery Parameters" if is_simple else "Grid Configuration",
             'capacity': "Battery Energy Storage Capacity" if is_simple else "Battery Capacity (kWh)",
             'max_power': "Charging / Discharging Speed" if is_simple else "Max Power Output (kW)",
-            'volatility_slider': "Utility Price Volatility" if is_simple else "AR(1) Price Volatility"
+            'volatility_slider': "Utility Price Volatility" if is_simple else "AR(1) Price Volatility",
+            'capacity_help': "Determines how much total electricity the battery can store." if is_simple else "Maximum capacity ($E_{\\text{max}}$) defining the upper bound of the State of Charge integrator.",
+            'max_power_help': "Limits how fast the battery charges from solar or discharges to the grid." if is_simple else "Maximum continuous power boundary ($P_{\\text{max}}$) constraining the continuous action space.",
+            'volatility_slider_help': "Controls how wildly utility pricing fluctuates." if is_simple else "Standard deviation parameter ($\\sigma_p$) driving the stochastic AR(1) price shock process.",
+            'chemistry_help': "Selects battery type: NMC is highly efficient but wears out faster; LFP lasts longer but is less efficient." if is_simple else "Selects chemistry preset defining base round-trip efficiency ($\\eta_{\\text{base}}$) and degradation rate ($C_{\\text{deg}}$)."
         }
         
         st.markdown(f"*{labels['desc']}*")
@@ -854,7 +875,8 @@ def main():
                 min_value=50,
                 max_value=200,
                 step=10,
-                key='capacity_slider'
+                key='capacity_slider',
+                help=labels['capacity_help']
             )
             
             max_power = st.slider(
@@ -862,7 +884,8 @@ def main():
                 min_value=10,
                 max_value=50,
                 step=5,
-                key='max_power_slider'
+                key='max_power_slider',
+                help=labels['max_power_help']
             )
             
             price_volatility = st.slider(
@@ -870,14 +893,16 @@ def main():
                 min_value=0.01,
                 max_value=0.10,
                 step=0.01,
-                key='volatility_slider'
+                key='volatility_slider',
+                help=labels['volatility_slider_help']
             )
             
             battery_chemistry = st.selectbox(
                 "Battery Chemistry Presets",
                 options=["🔋 LFP (92% Eff, Low Wear)", "⚡ NMC (96% Eff, High Wear)"],
                 index=0 if st.session_state.battery_chemistry_select == "🔋 LFP (92% Eff, Low Wear)" else 1,
-                key='battery_chemistry_select'
+                key='battery_chemistry_select',
+                help=labels['chemistry_help']
             )
             
             st.markdown("---")
@@ -918,7 +943,14 @@ def main():
         last_soc = results['trajectory']['soc'][-1] * 100.0
         last_power = results['trajectory']['power_kw'][-1]
         
-        st.components.v1.html(render_svg_schematic(last_solar, last_soc, last_power), height=170)
+        chem = "LFP" if "LFP" in battery_chemistry else "NMC"
+        st.components.v1.html(render_svg_schematic(
+            last_solar, last_soc, last_power,
+            capacity=float(battery_capacity),
+            max_power=float(max_power),
+            volatility=float(price_volatility),
+            chemistry=chem
+        ), height=170)
         
         # Display key metrics cards
         st.header("📊 Telemetry Metrics")
@@ -1059,7 +1091,15 @@ def main():
                     
                 # Display current dynamic SVG schematic
                 # To show a live schematic during manual play, we assume net_power is zero until user clicks
-                st.components.v1.html(render_svg_schematic(solar, soc_percent, 0.0), height=170)
+                chem = "LFP" if "LFP" in st.session_state.battery_chemistry_select else "NMC"
+                vol = float(st.session_state.volatility_slider)
+                st.components.v1.html(render_svg_schematic(
+                    solar, soc_percent, 0.0,
+                    capacity=capacity,
+                    max_power=power,
+                    volatility=vol,
+                    chemistry=chem
+                ), height=170)
                 
                 st.markdown("### Make Your Dispatch Decision:")
                 btn_col1, btn_col2, btn_col3 = st.columns(3)
