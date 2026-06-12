@@ -2060,3 +2060,47 @@ body.high-contrast .access-btn.active {
     font-weight: 400;
 }
 
+/* Schematic Legend styling */
+.schematic-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 6px currentColor;
+}
+
+.legend-color-dot.orange {
+    background-color: var(--color-orange);
+    color: var(--color-orange);
+}
+
+.legend-color-dot.green {
+    background-color: var(--color-green);
+    color: var(--color-green);
+}
+
+.legend-color-dot.red {
+    background-color: var(--color-red);
+    color: var(--color-red);
+}
+
+.legend-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+

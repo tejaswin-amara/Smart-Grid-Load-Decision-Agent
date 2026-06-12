@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elSchematicGrid) elSchematicGrid.textContent = gridStatusText;
         
         // CSS transitions over display swaps
-        const isSolarActive = (currentSolar > 2.0);
+        const isSolarActive = (currentSolar > 0.5);
         if (pathSolar) {
             pathSolar.classList.toggle('flow-active', isSolarActive);
             if (isSolarActive) {
@@ -604,7 +604,10 @@ document.addEventListener('DOMContentLoaded', () => {
             nodeBattery.classList.toggle('charging-active', isCharging);
             nodeBattery.classList.toggle('discharging-active', isDischarging);
         }
-        if (nodeGrid) nodeGrid.classList.toggle('solar-active', isCharging || isDischarging);
+        if (nodeGrid) {
+            nodeGrid.classList.toggle('charging-active', isCharging);
+            nodeGrid.classList.toggle('discharging-active', isDischarging);
+        }
     }
 
     // ── DECOMPOSED AI SYSTEM SIMULATOR ────────────────────────────

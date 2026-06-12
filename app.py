@@ -477,7 +477,7 @@ def render_svg_schematic(
     """Renders real-time dynamic animated microgrid SVG flow visualizer with parameters."""
     is_charging = net_power_kw > 0.5
     is_discharging = net_power_kw < -0.5
-    is_solar_active = solar_kw > 2.0
+    is_solar_active = solar_kw > 0.5
     
     path_solar_style = "display: block;" if is_solar_active else "display: none;"
     solar_duration = max(0.5, 3.0 - solar_kw * 0.05)
@@ -597,6 +597,20 @@ def render_svg_schematic(
                     </div>
                 </foreignObject>
             </svg>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #FF9F1C; box-shadow: 0 0 6px #FF9F1C;"></span>
+                <span style="font-size: 11px; color: #9CA3AF; font-weight: 500;">Solar Generation (Charging)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #2EC4B6; box-shadow: 0 0 6px #2EC4B6;"></span>
+                <span style="font-size: 11px; color: #9CA3AF; font-weight: 500;">Grid Import (Charging)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #E71D36; box-shadow: 0 0 6px #E71D36;"></span>
+                <span style="font-size: 11px; color: #9CA3AF; font-weight: 500;">Grid Export (Discharging)</span>
+            </div>
         </div>
         <style>
             @keyframes dash {{ to {{ stroke-dashoffset: -1000; }} }}
@@ -950,7 +964,7 @@ def main():
             max_power=float(max_power),
             volatility=float(price_volatility),
             chemistry=chem
-        ), height=170)
+        ), height=220)
         
         # Display key metrics cards
         st.header("📊 Telemetry Metrics")
@@ -1099,7 +1113,7 @@ def main():
                     max_power=power,
                     volatility=vol,
                     chemistry=chem
-                ), height=170)
+                ), height=220)
                 
                 st.markdown("### Make Your Dispatch Decision:")
                 btn_col1, btn_col2, btn_col3 = st.columns(3)
