@@ -1,3 +1,7 @@
+<div align="center">
+<img src="assets/header.svg" width="100%" alt="Smart Grid Header" />
+</div>
+
 # <div align="center">⚡ Stochastic Smart Grid Load Decision Agent</div>
 
 <p align="center">
@@ -235,3 +239,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](https://g
 * **Author:** Tejaswin Amara  
 * **Academic Email:** [tejaswin.amara@gmail.com](mailto:tejaswin.amara@gmail.com)  
 * **GitHub Profile:** [github.com/tejaswin-amara](https://github.com/tejaswin-amara)
+
+<div align="center">
+<img src="assets/footer.svg" width="100%" alt="Footer" />
+</div>
